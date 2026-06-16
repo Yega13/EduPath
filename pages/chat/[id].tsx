@@ -138,6 +138,13 @@ export default function ChatDetail({ id }: { id: string }) {
     const supabase = getBrowserClient();
     const nextIndex = chat.current_lesson_index + 1;
 
+    // Fetch current XP, then award +50 atomically
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('xp')
+      .eq('id', user.id)
+      .single();
+
     await Promise.all([
       supabase.from('lessons')
         .update({ status: 'completed', completed_at: new Date().toISOString() })
@@ -149,6 +156,9 @@ export default function ChatDetail({ id }: { id: string }) {
       supabase.from('chats')
         .update({ current_lesson_index: nextIndex, status: nextIndex >= chat.total_lessons ? 'completed' : 'active' })
         .eq('id', id),
+      supabase.from('profiles')
+        .update({ xp: (profileData?.xp ?? 0) + 50 })
+        .eq('id', user.id),
     ]);
 
     setChat((prev) => prev ? { ...prev, current_lesson_index: nextIndex } : prev);

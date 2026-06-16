@@ -65,8 +65,29 @@ export default function Dashboard() {
   if (userLoading || dataLoading) {
     return (
       <Layout>
-        <div className="flex items-center justify-center h-64">
-          <div className="w-6 h-6 border-2 border-[var(--color-brand)] border-t-transparent rounded-full animate-spin" />
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <div className="h-7 w-52 rounded-xl bg-[var(--border)] animate-pulse mb-2" />
+          <div className="h-4 w-64 rounded-lg bg-[var(--border)] animate-pulse mb-8" />
+          <div className="grid grid-cols-3 gap-4 mb-8">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-5">
+                <div className="w-9 h-9 rounded-xl bg-[var(--border)] animate-pulse mb-3" />
+                <div className="h-3 w-16 rounded bg-[var(--border)] animate-pulse mb-2" />
+                <div className="h-7 w-20 rounded-lg bg-[var(--border)] animate-pulse" />
+              </div>
+            ))}
+          </div>
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-[var(--border)]">
+              <div className="h-5 w-36 rounded bg-[var(--border)] animate-pulse" />
+            </div>
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="px-5 py-4 border-b border-[var(--border)] last:border-0">
+                <div className="h-4 w-3/4 rounded bg-[var(--border)] animate-pulse mb-2" />
+                <div className="h-2 w-1/3 rounded bg-[var(--border)] animate-pulse" />
+              </div>
+            ))}
+          </div>
         </div>
       </Layout>
     );

@@ -2,47 +2,10 @@ import { GetStaticProps } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useTranslation } from 'next-i18next';
 import Link from 'next/link';
+import Image from 'next/image';
 import Layout from '@/components/Layout';
 import { motion } from 'framer-motion';
-import { Zap, Trophy, Target, BookOpen, Star, ArrowRight } from 'lucide-react';
-
-function HeroIllustration() {
-  return (
-    <svg viewBox="0 0 480 320" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full max-w-lg mx-auto">
-      <circle cx="240" cy="160" r="140" fill="#EFF6FF" className="dark:fill-blue-950/40" />
-
-      {/* Laptop body */}
-      <rect x="100" y="100" width="280" height="170" rx="12" fill="#1e40af" />
-      <rect x="110" y="110" width="260" height="150" rx="8" fill="#dbeafe" className="dark:fill-blue-900" />
-
-      {/* Chat bubbles on screen */}
-      <rect x="124" y="126" width="160" height="22" rx="11" fill="#2578e8" opacity="0.9" />
-      <rect x="124" y="156" width="100" height="22" rx="11" fill="#e2e8f0" className="dark:fill-slate-700" />
-      <rect x="124" y="186" width="140" height="22" rx="11" fill="#2578e8" opacity="0.9" />
-      <rect x="124" y="216" width="80" height="22" rx="11" fill="#e2e8f0" className="dark:fill-slate-700" />
-
-      {/* Laptop base */}
-      <path d="M60 272 Q60 278 66 278 H414 Q420 278 420 272 L400 268 H80 L60 272Z" fill="#1e40af" />
-      <rect x="60" y="268" width="360" height="10" rx="4" fill="#1d4ed8" />
-
-      {/* XP badge */}
-      <rect x="310" y="82" width="80" height="38" rx="10" fill="#22c55e" />
-      <text x="330" y="97" fill="white" fontSize="10" fontWeight="700">+50 XP</text>
-      <text x="322" y="111" fill="white" fontSize="9" opacity="0.85">Lesson done!</text>
-
-      {/* Streak badge */}
-      <rect x="88" y="78" width="74" height="38" rx="10" fill="#f97316" />
-      <text x="103" y="93" fill="white" fontSize="10" fontWeight="700">🔥 7 days</text>
-      <text x="100" y="108" fill="white" fontSize="9" opacity="0.85">On a streak!</text>
-
-      {/* Stars */}
-      <circle cx="420" cy="130" r="4" fill="#eab308" />
-      <circle cx="435" cy="110" r="2.5" fill="#eab308" opacity="0.7" />
-      <circle cx="55" cy="180" r="3" fill="#eab308" opacity="0.8" />
-      <circle cx="440" cy="200" r="2" fill="#eab308" opacity="0.5" />
-    </svg>
-  );
-}
+import { Zap, Trophy, Target, BookOpen, Star, ArrowRight, Flame } from 'lucide-react';
 
 const FEATURES = [
   {
@@ -134,13 +97,44 @@ export default function Home() {
             </div>
           </motion.div>
 
+          {/* Hero image with floating badges */}
           <motion.div
-            className="flex-1 w-full"
+            className="flex-1 w-full relative"
             initial={{ opacity: 0, x: 24 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
-            <HeroIllustration />
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl">
+              <Image
+                src="https://picsum.photos/seed/students-learning/600/400"
+                alt="Students learning"
+                width={600}
+                height={400}
+                className="w-full object-cover"
+                priority
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+            </div>
+            {/* XP badge */}
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.5, type: 'spring' }}
+              className="absolute -top-3 -right-3 flex items-center gap-1.5 bg-green-500 text-white px-3 py-2 rounded-xl text-sm font-bold shadow-lg"
+            >
+              <Zap size={14} />
+              +50 XP
+            </motion.div>
+            {/* Streak badge */}
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.65, type: 'spring' }}
+              className="absolute -bottom-3 -left-3 flex items-center gap-1.5 bg-orange-500 text-white px-3 py-2 rounded-xl text-sm font-bold shadow-lg"
+            >
+              <Flame size={14} />
+              7 day streak!
+            </motion.div>
           </motion.div>
         </div>
       </section>
@@ -180,7 +174,7 @@ export default function Home() {
             <p className="text-[var(--text-secondary)] text-base">From zero to learning in under 60 seconds.</p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {STEPS.map((step, i) => (
               <motion.div
                 key={step.num}
@@ -188,12 +182,9 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.12 }}
-                className="relative flex flex-col items-center text-center"
+                className="flex flex-col items-center text-center"
               >
-                {i < STEPS.length - 1 && (
-                  <div className="hidden md:block absolute top-6 left-[calc(50%+2rem)] w-[calc(100%-4rem)] h-px border-t-2 border-dashed border-[var(--border)] z-0" />
-                )}
-                <div className={`relative z-10 w-12 h-12 rounded-2xl ${step.color} flex items-center justify-center mb-4 shadow-md`}>
+                <div className={`w-12 h-12 rounded-2xl ${step.color} flex items-center justify-center mb-4 shadow-md`}>
                   <step.icon size={22} className="text-white" />
                 </div>
                 <h3 className="font-bold text-[var(--text-primary)] mb-1.5">{step.title}</h3>
@@ -213,10 +204,8 @@ export default function Home() {
           transition={{ duration: 0.4 }}
           className="rounded-2xl bg-gradient-to-r from-blue-600 to-blue-500 p-10 text-center text-white relative overflow-hidden"
         >
-          {/* Decorative circles */}
           <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full" />
           <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-white/10 rounded-full" />
-
           <div className="relative z-10">
             <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-white/20 mb-4">
               100% Free · No credit card
