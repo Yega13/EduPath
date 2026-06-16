@@ -1,0 +1,54 @@
+{
+  "nav": {
+    "home": "Գլխավոր",
+    "opportunities": "Հնարավորություններ",
+    "dashboard": "Վահանակ",
+    "learn": "Սովորել",
+    "profile": "Պրոֆիլ",
+    "leaderboard": "Վարկանիշ"
+  },
+  "home": {
+    "hero_title": "Սովորիր. Աճիր. Հաղթիր.",
+    "hero_subtitle": "EduPath AI-ն կստեղծի անձնական ուսումնական ուղի հատուկ քեզ համար",
+    "cta_start": "Սկսել անվճար",
+    "cta_explore": "Հնարավորություններ"
+  },
+  "auth": {
+    "sign_in": "Մուտք",
+    "sign_up": "Գրանցվել",
+    "email": "Էլ. հասցե",
+    "password": "Գաղտնաբառ",
+    "full_name": "Անուն Ազգանուն",
+    "or_continue_with": "կամ շարունակել",
+    "already_have_account": "Արդեն ունե՞ս հաշիվ",
+    "no_account": "Հաշիվ չունե՞ս"
+  },
+  "dashboard": {
+    "title": "Իմ Վահանակ",
+    "active_chats": "Ակտիվ Զրույցներ",
+    "xp_total": "Ընդհանուր XP",
+    "streak": "Անընդմեջ Օրեր",
+    "no_chats": "Դեռ զրույցներ չկան",
+    "start_learning": "Սկսել Ուսուցում"
+  },
+  "chat": {
+    "new_chat": "Նոր Զրույց",
+    "placeholder": "Հաղորդագրություն...",
+    "send": "Ուղարկել"
+  },
+  "opportunities": {
+    "title": "Հնարավորություններ",
+    "filter_all": "Բոլորը",
+    "deadline": "Վերջնաժամկետ",
+    "prepare_me": "Պատրաստվել",
+    "no_events": "Հնարավորություններ չեն գտնվել"
+  },
+  "common": {
+    "loading": "Բեռնվում է...",
+    "error": "Սխալ",
+    "save": "Պահել",
+    "cancel": "Չեղարկել",
+    "back": "Հետ",
+    "days_left": "օր մնացել"
+  }
+}
