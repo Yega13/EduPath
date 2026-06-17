@@ -3,6 +3,7 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useTranslation } from 'next-i18next';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import Head from 'next/head';
 import { Zap, Flame, Edit2, Check, X, LogOut } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Layout from '@/components/Layout';
@@ -86,8 +87,36 @@ export default function ProfilePage() {
   if (userLoading || pageLoading) {
     return (
       <Layout>
-        <div className="flex items-center justify-center h-64">
-          <div className="w-6 h-6 border-2 border-[var(--color-brand)] border-t-transparent rounded-full animate-spin" />
+        <div className="max-w-2xl mx-auto px-4 py-8">
+          {/* Avatar + name skeleton */}
+          <div className="flex items-center gap-4 mb-6">
+            <div className="w-16 h-16 rounded-2xl bg-[var(--border)] animate-pulse" />
+            <div>
+              <div className="h-5 w-36 rounded-lg bg-[var(--border)] animate-pulse mb-2" />
+              <div className="h-3 w-28 rounded bg-[var(--border)] animate-pulse" />
+            </div>
+          </div>
+          {/* Stat cards skeleton */}
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            {[0, 1].map((i) => (
+              <div key={i} className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-4 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-[var(--border)] animate-pulse" />
+                <div>
+                  <div className="h-2.5 w-12 rounded bg-[var(--border)] animate-pulse mb-2" />
+                  <div className="h-6 w-10 rounded-lg bg-[var(--border)] animate-pulse" />
+                </div>
+              </div>
+            ))}
+          </div>
+          {/* Info card skeleton */}
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-5 space-y-4">
+            {[0, 1].map((i) => (
+              <div key={i}>
+                <div className="h-2.5 w-20 rounded bg-[var(--border)] animate-pulse mb-2" />
+                <div className="h-4 w-3/4 rounded bg-[var(--border)] animate-pulse" />
+              </div>
+            ))}
+          </div>
         </div>
       </Layout>
     );
@@ -101,6 +130,7 @@ export default function ProfilePage() {
 
   return (
     <Layout>
+      <Head><title>Profile — EduPath</title></Head>
       <div className="max-w-2xl mx-auto px-4 py-8">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
 

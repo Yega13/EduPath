@@ -20,20 +20,20 @@ export default function BottomNav() {
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[var(--bg-secondary)] border-t border-[var(--border)] pb-2">
       <div className="flex items-center justify-around py-2">
         {items.map(({ href, label, icon: Icon }) => {
-          const active = pathname === href || pathname.startsWith(href + '/');
+          const active = pathname === href || (href !== '/' && pathname.startsWith(href));
           return (
             <Link
               key={href}
               href={href}
               className={cn(
-                'flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg transition-colors',
+                'flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all',
                 active
-                  ? 'text-[var(--color-brand)]'
+                  ? 'text-[var(--color-brand)] bg-blue-50 dark:bg-blue-900/20'
                   : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
               )}
             >
               <Icon size={22} strokeWidth={active ? 2.5 : 1.8} />
-              <span className="text-[10px] font-medium">{label}</span>
+              <span className={cn('text-[10px] font-medium', active && 'font-bold')}>{label}</span>
             </Link>
           );
         })}

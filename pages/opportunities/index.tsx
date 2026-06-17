@@ -3,6 +3,7 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useTranslation } from 'next-i18next';
 import { useState } from 'react';
 import Link from 'next/link';
+import Head from 'next/head';
 import { Calendar, Globe, ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Layout from '@/components/Layout';
@@ -55,6 +56,7 @@ export default function Opportunities({ events }: Props) {
 
   return (
     <Layout>
+      <Head><title>Opportunities — EduPath</title></Head>
       <div className="max-w-5xl mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-2">{t('opportunities.title')}</h1>
         <p className="text-sm text-[var(--text-secondary)] mb-6">

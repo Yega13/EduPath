@@ -4,6 +4,7 @@ import { useTranslation } from 'next-i18next';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import Head from 'next/head';
 import { Zap, Flame, MessageSquare, ArrowRight, BookOpen, Map } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Layout from '@/components/Layout';
@@ -123,6 +124,7 @@ export default function Dashboard() {
 
   return (
     <Layout>
+      <Head><title>Dashboard — EduPath</title></Head>
       <div className="max-w-4xl mx-auto px-4 py-8">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-1">

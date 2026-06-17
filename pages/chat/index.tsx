@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import Head from 'next/head';
 import { Sparkles, ArrowRight, BookOpen, Map, ChevronDown } from 'lucide-react';
 import Layout from '@/components/Layout';
 import { useUser } from '@/lib/useUser';
@@ -99,6 +100,7 @@ export default function ChatIndex() {
 
   return (
     <Layout>
+      <Head><title>Learn — EduPath</title></Head>
       <div className="max-w-lg mx-auto px-4 py-10">
 
         {/* Active chats section */}
