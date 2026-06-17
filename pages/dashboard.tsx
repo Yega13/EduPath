@@ -4,7 +4,7 @@ import { useTranslation } from 'next-i18next';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { Zap, Flame, MessageSquare, ArrowRight, BookOpen } from 'lucide-react';
+import { Zap, Flame, MessageSquare, ArrowRight, BookOpen, Map } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Layout from '@/components/Layout';
 import { useUser } from '@/lib/useUser';
@@ -185,10 +185,10 @@ export default function Dashboard() {
               {chats.map((chat) => {
                 const pct = Math.round((chat.current_lesson_index / chat.total_lessons) * 100);
                 return (
-                  <li key={chat.id}>
+                  <li key={chat.id} className="flex items-center">
                     <Link
                       href={`/chat/${chat.id}`}
-                      className="flex items-center gap-4 px-5 py-4 hover:bg-[var(--border)] transition-colors group"
+                      className="flex items-center gap-4 flex-1 px-5 py-4 hover:bg-[var(--border)] transition-colors group min-w-0"
                     >
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-[var(--text-primary)] truncate">{chat.title}</p>
@@ -211,6 +211,13 @@ export default function Dashboard() {
                         size={16}
                         className="text-[var(--text-muted)] group-hover:text-[var(--color-brand)] transition-colors flex-shrink-0"
                       />
+                    </Link>
+                    <Link
+                      href={`/roadmap/${chat.id}`}
+                      title="View roadmap"
+                      className="flex-shrink-0 flex items-center justify-center w-9 h-9 mr-3 rounded-xl text-[var(--text-muted)] hover:text-[var(--color-brand)] hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                    >
+                      <Map size={15} />
                     </Link>
                   </li>
                 );

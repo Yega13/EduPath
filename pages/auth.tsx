@@ -14,10 +14,12 @@ export default function Auth() {
   const router = useRouter();
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
 
-  // Redirect to dashboard if already signed in
+  // Redirect away if already signed in
   useEffect(() => {
+    const next = router.query.next as string | undefined;
+    const dest = next && next.startsWith('/') ? next : '/dashboard';
     getBrowserClient().auth.getUser().then(({ data: { user } }) => {
-      if (user) router.replace('/dashboard');
+      if (user) router.replace(dest);
     });
   }, [router]);
   const [email, setEmail] = useState('');
@@ -52,7 +54,8 @@ export default function Auth() {
         setMessage(error.message);
         setIsError(true);
       } else {
-        await router.replace('/dashboard');
+        const next = router.query.next as string | undefined;
+        await router.replace(next && next.startsWith('/') ? next : '/dashboard');
       }
     }
 

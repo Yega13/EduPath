@@ -2,10 +2,11 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { supabase, getAdminClient } from '@/lib/supabase';
 import { generateAIResponse } from '@/lib/ai';
 
+const DAILY_LIMIT = 50;
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).end();
 
-  // Auth
   const token = req.headers.authorization?.replace('Bearer ', '');
   if (!token) return res.status(401).json({ error: 'Missing token' });
 
@@ -19,7 +20,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const admin = getAdminClient();
 
-  // Load chat (verify ownership)
+  // Rate limiting — graceful if columns not yet migrated
+  try {
+    const { data: profile } = await admin
+      .from('profiles')
+      .select('daily_messages_used, last_message_date')
+      .eq('id', user.id)
+      .single();
+
+    if (profile && 'daily_messages_used' in profile) {
+      const today = new Date().toISOString().split('T')[0];
+      const isNewDay = profile.last_message_date !== today;
+      const used = isNewDay ? 0 : (profile.daily_messages_used ?? 0);
+
+      if (used >= DAILY_LIMIT) {
+        return res.status(429).json({
+          error: `You've reached today's limit of ${DAILY_LIMIT} messages. Come back tomorrow!`,
+        });
+      }
+
+      await admin
+        .from('profiles')
+        .update({
+          daily_messages_used: used + 1,
+          last_message_date: today,
+        })
+        .eq('id', user.id);
+    }
+  } catch {
+    // columns not migrated yet — skip rate limiting
+  }
+
+  // Verify chat ownership
   const { data: chat, error: chatErr } = await admin
     .from('chats')
     .select('*, lessons(*)')
@@ -29,7 +61,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (chatErr || !chat) return res.status(404).json({ error: 'Chat not found' });
 
-  // Load message history (last 20 to stay within token budget)
+  // Load message history (last 20)
   const { data: history } = await admin
     .from('messages')
     .select('role, content')
@@ -60,7 +92,6 @@ Rules:
     { role: 'user' as const, content: message.trim() },
   ];
 
-  // Save user message
   await admin.from('messages').insert({
     chat_id: chatId,
     role: 'user',
@@ -68,10 +99,8 @@ Rules:
     lesson_index: chat.current_lesson_index,
   });
 
-  // Generate AI reply
   const reply = await generateAIResponse(aiMessages, 'chat', systemPrompt);
 
-  // Save AI reply
   await admin.from('messages').insert({
     chat_id: chatId,
     role: 'assistant',
@@ -79,7 +108,6 @@ Rules:
     lesson_index: chat.current_lesson_index,
   });
 
-  // Update chat updated_at
   await admin.from('chats').update({ updated_at: new Date().toISOString() }).eq('id', chatId);
 
   return res.status(200).json({ reply });

@@ -64,12 +64,15 @@ export default function ProfilePage() {
     if (!user) return;
     setSaving(true);
     const supabase = getBrowserClient();
-    const { data } = await supabase
-      .from('profiles')
-      .update({ full_name: fullName, goal, skill_level: skillLevel, preferred_language: prefLang })
-      .eq('id', user.id)
-      .select()
-      .single();
+    const [{ data }] = await Promise.all([
+      supabase
+        .from('profiles')
+        .update({ full_name: fullName, goal, skill_level: skillLevel, preferred_language: prefLang })
+        .eq('id', user.id)
+        .select()
+        .single(),
+      supabase.auth.updateUser({ data: { full_name: fullName } }),
+    ]);
     if (data) setProfile(data as Profile);
     setSaving(false);
     setEditing(false);

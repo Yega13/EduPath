@@ -138,12 +138,20 @@ export default function ChatDetail({ id }: { id: string }) {
     const supabase = getBrowserClient();
     const nextIndex = chat.current_lesson_index + 1;
 
-    // Fetch current XP, then award +50 atomically
+    // Fetch profile for XP + streak calculation
     const { data: profileData } = await supabase
       .from('profiles')
-      .select('xp')
+      .select('xp, streak_days, last_active_date')
       .eq('id', user.id)
       .single();
+
+    const today = new Date().toISOString().split('T')[0];
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    const lastActive = profileData?.last_active_date as string | undefined;
+    let newStreak = profileData?.streak_days ?? 0;
+    if (lastActive !== today) {
+      newStreak = lastActive === yesterday ? newStreak + 1 : 1;
+    }
 
     await Promise.all([
       supabase.from('lessons')
@@ -157,7 +165,7 @@ export default function ChatDetail({ id }: { id: string }) {
         .update({ current_lesson_index: nextIndex, status: nextIndex >= chat.total_lessons ? 'completed' : 'active' })
         .eq('id', id),
       supabase.from('profiles')
-        .update({ xp: (profileData?.xp ?? 0) + 50 })
+        .update({ xp: (profileData?.xp ?? 0) + 50, streak_days: newStreak, last_active_date: today })
         .eq('id', user.id),
     ]);
 
