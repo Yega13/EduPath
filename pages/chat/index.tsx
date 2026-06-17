@@ -3,8 +3,9 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useTranslation } from 'next-i18next';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Sparkles, ArrowRight } from 'lucide-react';
+import { Sparkles, ArrowRight, BookOpen, Map } from 'lucide-react';
 import Layout from '@/components/Layout';
 import { useUser } from '@/lib/useUser';
 import { getBrowserClient } from '@/lib/supabase';
@@ -13,19 +14,46 @@ import { cn } from '@/lib/utils';
 const SKILL_LEVELS = ['beginner', 'intermediate', 'advanced'] as const;
 type SkillLevel = typeof SKILL_LEVELS[number];
 
+interface ActiveChat {
+  id: string;
+  title: string;
+  current_lesson_index: number;
+  total_lessons: number;
+  updated_at: string;
+}
+
 export default function ChatIndex() {
   const { t } = useTranslation('common');
   const router = useRouter();
   const { user, loading } = useUser();
 
-  const [goal, setGoal] = useState('');
+  const [goal, setGoal]             = useState('');
   const [skillLevel, setSkillLevel] = useState<SkillLevel>('beginner');
-  const [building, setBuilding] = useState(false);
-  const [error, setError] = useState('');
+  const [building, setBuilding]     = useState(false);
+  const [error, setError]           = useState('');
+  const [activeChats, setActiveChats] = useState<ActiveChat[]>([]);
+  const [chatsLoaded, setChatsLoaded] = useState(false);
+  const [showNewPath, setShowNewPath] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) router.replace('/auth');
   }, [user, loading, router]);
+
+  useEffect(() => {
+    if (!user) return;
+    getBrowserClient()
+      .from('chats')
+      .select('id, title, current_lesson_index, total_lessons, updated_at')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .order('updated_at', { ascending: false })
+      .limit(5)
+      .then(({ data }) => {
+        setActiveChats((data ?? []) as ActiveChat[]);
+        setChatsLoaded(true);
+        if (!data || data.length === 0) setShowNewPath(true);
+      });
+  }, [user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,9 +87,9 @@ export default function ChatIndex() {
     }
   };
 
-  if (loading) {
+  if (loading || !chatsLoaded) {
     return (
-      <Layout hideFooter>
+      <Layout>
         <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
           <div className="w-6 h-6 border-2 border-[var(--color-brand)] border-t-transparent rounded-full animate-spin" />
         </div>
@@ -70,28 +98,97 @@ export default function ChatIndex() {
   }
 
   return (
-    <Layout hideFooter>
-      <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] px-4 py-12">
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="w-full max-w-lg"
-        >
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-100 dark:bg-blue-900/30 mb-4">
-              <Sparkles size={28} className="text-[var(--color-brand)]" />
-            </div>
-            <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-2">
-              {t('chat.goal_label')}
-            </h1>
-            <p className="text-sm text-[var(--text-secondary)]">
-              Our AI will build a 5-lesson plan and start teaching you right away.
-            </p>
-          </div>
+    <Layout>
+      <div className="max-w-lg mx-auto px-4 py-10">
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
+        {/* Active chats section */}
+        {activeChats.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
+            <h2 className="text-lg font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+              <BookOpen size={18} className="text-[var(--color-brand)]" />
+              Continue Learning
+            </h2>
+            <div className="space-y-2">
+              {activeChats.map((chat) => {
+                const pct = Math.round((chat.current_lesson_index / chat.total_lessons) * 100);
+                return (
+                  <div
+                    key={chat.id}
+                    className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl overflow-hidden"
+                  >
+                    <Link
+                      href={`/chat/${chat.id}`}
+                      className="flex items-center gap-4 px-4 py-3.5 hover:bg-[var(--border)] transition-colors group"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-[var(--text-primary)] truncate">{chat.title}</p>
+                        <div className="flex items-center gap-2 mt-1.5">
+                          <div className="flex-1 max-w-[100px] h-1.5 rounded-full bg-[var(--border)]">
+                            <div
+                              className="h-full rounded-full bg-[var(--color-brand)] transition-all"
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
+                          <span className="text-[10px] text-[var(--text-muted)]">
+                            Lesson {chat.current_lesson_index + 1}/{chat.total_lessons}
+                          </span>
+                        </div>
+                      </div>
+                      <ArrowRight
+                        size={15}
+                        className="text-[var(--text-muted)] group-hover:text-[var(--color-brand)] flex-shrink-0 transition-colors"
+                      />
+                    </Link>
+                    <div className="border-t border-[var(--border)] px-4 py-2 flex items-center gap-3">
+                      <Link
+                        href={`/roadmap/${chat.id}`}
+                        className="inline-flex items-center gap-1 text-[10px] font-medium text-[var(--text-muted)] hover:text-[var(--color-brand)] transition-colors"
+                      >
+                        <Map size={11} />
+                        View roadmap
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Divider / toggle for new path */}
+        {activeChats.length > 0 && (
+          <div className="flex items-center gap-3 mb-8">
+            <div className="flex-1 h-px bg-[var(--border)]" />
+            <button
+              onClick={() => setShowNewPath((v) => !v)}
+              className="text-xs font-medium text-[var(--text-muted)] hover:text-[var(--color-brand)] transition-colors whitespace-nowrap"
+            >
+              {showNewPath ? '↑ Hide new path' : '+ Start a new learning path'}
+            </button>
+            <div className="flex-1 h-px bg-[var(--border)]" />
+          </div>
+        )}
+
+        {/* New path form */}
+        {showNewPath && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="text-center mb-6">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-900/30 mb-3">
+                <Sparkles size={24} className="text-[var(--color-brand)]" />
+              </div>
+              <h1 className="text-xl font-bold text-[var(--text-primary)] mb-1">
+                {t('chat.goal_label')}
+              </h1>
+              <p className="text-sm text-[var(--text-secondary)]">
+                AI builds a 5-lesson plan and starts teaching you immediately.
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
               <textarea
                 value={goal}
                 onChange={(e) => setGoal(e.target.value)}
@@ -100,54 +197,52 @@ export default function ChatIndex() {
                 rows={3}
                 className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-primary)] text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[var(--color-brand)] transition placeholder-[var(--text-muted)]"
               />
-            </div>
 
-            <div>
-              <p className="text-sm font-medium text-[var(--text-secondary)] mb-2">
-                {t('chat.skill_label')}
-              </p>
-              <div className="grid grid-cols-3 gap-2">
-                {SKILL_LEVELS.map((level) => (
-                  <button
-                    key={level}
-                    type="button"
-                    onClick={() => setSkillLevel(level)}
-                    className={cn(
-                      'py-2.5 rounded-xl text-sm font-medium border transition-all',
-                      skillLevel === level
-                        ? 'bg-[var(--color-brand)] text-white border-[var(--color-brand)]'
-                        : 'bg-[var(--bg-card)] text-[var(--text-secondary)] border-[var(--border)] hover:border-[var(--color-brand)]'
-                    )}
-                  >
-                    {t(`chat.skill_${level}`)}
-                  </button>
-                ))}
+              <div>
+                <p className="text-sm font-medium text-[var(--text-secondary)] mb-2">
+                  {t('chat.skill_label')}
+                </p>
+                <div className="grid grid-cols-3 gap-2">
+                  {SKILL_LEVELS.map((level) => (
+                    <button
+                      key={level}
+                      type="button"
+                      onClick={() => setSkillLevel(level)}
+                      className={cn(
+                        'py-2.5 rounded-xl text-sm font-medium border transition-all',
+                        skillLevel === level
+                          ? 'bg-[var(--color-brand)] text-white border-[var(--color-brand)]'
+                          : 'bg-[var(--bg-card)] text-[var(--text-secondary)] border-[var(--border)] hover:border-[var(--color-brand)]'
+                      )}
+                    >
+                      {t(`chat.skill_${level}`)}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {error && (
-              <p className="text-sm text-red-500 dark:text-red-400">{error}</p>
-            )}
+              {error && <p className="text-sm text-red-500 dark:text-red-400">{error}</p>}
 
-            <button
-              type="submit"
-              disabled={building || !goal.trim()}
-              className="w-full py-3.5 rounded-xl bg-[var(--color-brand)] text-white font-semibold text-sm hover:bg-[var(--color-brand-hover)] transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
-            >
-              {building ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  {t('chat.building_plan')}
-                </>
-              ) : (
-                <>
-                  {t('chat.build_plan')}
-                  <ArrowRight size={16} />
-                </>
-              )}
-            </button>
-          </form>
-        </motion.div>
+              <button
+                type="submit"
+                disabled={building || !goal.trim()}
+                className="w-full py-3.5 rounded-xl bg-[var(--color-brand)] text-white font-semibold text-sm hover:bg-[var(--color-brand-hover)] transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
+              >
+                {building ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    {t('chat.building_plan')}
+                  </>
+                ) : (
+                  <>
+                    {t('chat.build_plan')}
+                    <ArrowRight size={16} />
+                  </>
+                )}
+              </button>
+            </form>
+          </motion.div>
+        )}
       </div>
     </Layout>
   );

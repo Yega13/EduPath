@@ -3,7 +3,7 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useTranslation } from 'next-i18next';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { Zap, Flame, Edit2, Check, X } from 'lucide-react';
+import { Zap, Flame, Edit2, Check, X, LogOut } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Layout from '@/components/Layout';
 import { useUser } from '@/lib/useUser';
@@ -59,6 +59,11 @@ export default function ProfilePage() {
       setPageLoading(false);
     });
   }, [user]);
+
+  const handleSignOut = async () => {
+    await getBrowserClient().auth.signOut();
+    router.push('/auth');
+  };
 
   const saveProfile = async () => {
     if (!user) return;
@@ -245,6 +250,17 @@ export default function ProfilePage() {
                 </div>
               </>
             )}
+          </div>
+
+          {/* Sign out */}
+          <div className="mt-6 pt-4 border-t border-[var(--border)]">
+            <button
+              onClick={handleSignOut}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-red-200 dark:border-red-800 text-red-500 text-sm font-medium hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+            >
+              <LogOut size={14} />
+              Sign out
+            </button>
           </div>
         </motion.div>
       </div>

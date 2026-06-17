@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Head from 'next/head';
-import { CheckCircle, Lock, Circle, ArrowRight, ChevronLeft, Map } from 'lucide-react';
+import { CheckCircle, Lock, ArrowRight, ChevronLeft, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Layout from '@/components/Layout';
 import { useUser } from '@/lib/useUser';
@@ -42,7 +42,6 @@ export default function RoadmapPage({ chatId }: { chatId: string }) {
   useEffect(() => {
     if (!user || !chatId) return;
     const supabase = getBrowserClient();
-
     Promise.all([
       supabase.from('chats').select('*').eq('id', chatId).eq('user_id', user.id).single(),
       supabase.from('lessons').select('*').eq('chat_id', chatId).order('lesson_index'),
@@ -57,13 +56,12 @@ export default function RoadmapPage({ chatId }: { chatId: string }) {
   if (userLoading || loading) {
     return (
       <Layout>
-        <div className="max-w-2xl mx-auto px-4 py-12 space-y-4">
+        <div className="max-w-sm mx-auto px-4 py-12">
           {[0, 1, 2, 3, 4].map((i) => (
-            <div key={i} className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-full bg-[var(--border)] animate-pulse flex-shrink-0" />
-              <div className="flex-1 pt-1">
-                <div className="h-4 w-3/4 rounded bg-[var(--border)] animate-pulse mb-2" />
-                <div className="h-3 w-1/2 rounded bg-[var(--border)] animate-pulse" />
+            <div key={i} className={cn('flex mb-2', i % 2 === 0 ? 'justify-start' : 'justify-end')}>
+              <div className="flex flex-col items-center" style={{ width: 90 }}>
+                <div className="w-16 h-16 rounded-full bg-[var(--border)] animate-pulse" />
+                <div className="h-2.5 w-14 rounded bg-[var(--border)] animate-pulse mt-2" />
               </div>
             </div>
           ))}
@@ -79,7 +77,7 @@ export default function RoadmapPage({ chatId }: { chatId: string }) {
   return (
     <Layout>
       <Head><title>{chat?.title ?? 'Roadmap'} — EduPath</title></Head>
-      <div className="max-w-2xl mx-auto px-4 py-8">
+      <div className="max-w-sm mx-auto px-4 py-8">
 
         {/* Back */}
         <Link
@@ -92,12 +90,9 @@ export default function RoadmapPage({ chatId }: { chatId: string }) {
 
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
-          <div className="flex items-center gap-2 mb-1">
-            <Map size={20} className="text-[var(--color-brand)]" />
-            <h1 className="text-xl font-bold text-[var(--text-primary)] leading-snug">{chat?.title}</h1>
-          </div>
+          <h1 className="text-xl font-bold text-[var(--text-primary)] leading-snug mb-1">{chat?.title}</h1>
           <p className="text-sm text-[var(--text-secondary)] mb-4">
-            {allDone ? 'Course complete!' : `Lesson ${Math.min(completedCount + 1, chat?.total_lessons ?? 5)} of ${chat?.total_lessons}`}
+            {allDone ? 'Course complete!' : `${completedCount} of ${chat?.total_lessons} lessons done`}
           </p>
 
           {/* Progress bar */}
@@ -106,119 +101,122 @@ export default function RoadmapPage({ chatId }: { chatId: string }) {
               className="h-full rounded-full bg-[var(--color-brand)]"
               initial={{ width: 0 }}
               animate={{ width: `${pct}%` }}
-              transition={{ duration: 0.8, ease: 'easeOut' }}
+              transition={{ duration: 0.9, ease: 'easeOut' }}
             />
           </div>
-          <p className="text-xs text-[var(--text-muted)] mt-1.5">{pct}% complete</p>
+          <p className="text-xs text-[var(--text-muted)] mt-1.5">{pct}% complete · +{completedCount * 50} XP earned</p>
         </motion.div>
 
-        {/* Path */}
-        <div className="relative">
-          {/* Vertical connector line */}
-          <div className="absolute left-5 top-6 bottom-6 w-0.5 bg-[var(--border)]" />
+        {/* ── Island path ── */}
+        <div className="pb-6">
+          {lessons.map((lesson, i) => {
+            const isLeft      = i % 2 === 0;
+            const isCompleted = lesson.status === 'completed';
+            const isActive    = lesson.status === 'active';
+            const isLast      = i === lessons.length - 1;
 
-          <div className="space-y-1">
-            {lessons.map((lesson, i) => {
-              const isCompleted = lesson.status === 'completed';
-              const isActive    = lesson.status === 'active';
-              const isLocked    = lesson.status === 'locked';
-
-              return (
-                <motion.div
-                  key={lesson.id}
-                  initial={{ opacity: 0, x: -16 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.07 }}
-                  className="relative flex items-start gap-4"
-                >
-                  {/* Node */}
-                  <div className={cn(
-                    'relative z-10 w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 border-2 transition-all',
-                    isCompleted ? 'bg-[var(--color-green)] border-[var(--color-green)]' :
-                    isActive    ? 'bg-[var(--color-brand)] border-[var(--color-brand)] ring-4 ring-blue-200 dark:ring-blue-900/40' :
-                                  'bg-[var(--bg-card)] border-[var(--border)]'
-                  )}>
-                    {isCompleted ? (
-                      <CheckCircle size={18} className="text-white" />
-                    ) : isActive ? (
-                      <Circle size={18} className="text-white" />
-                    ) : (
-                      <Lock size={14} className="text-[var(--text-muted)]" />
-                    )}
-                  </div>
-
-                  {/* Card */}
-                  <div className={cn(
-                    'flex-1 rounded-2xl p-4 mb-4 border transition-all',
-                    isCompleted
-                      ? 'border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-900/10'
-                      : isActive
-                      ? 'border-[var(--color-brand)] bg-blue-50 dark:bg-blue-900/10 shadow-sm'
-                      : 'border-[var(--border)] bg-[var(--bg-card)] opacity-50'
-                  )}>
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <p className={cn(
-                          'text-xs font-semibold uppercase tracking-wide mb-0.5',
-                          isCompleted ? 'text-[var(--color-green)]' :
-                          isActive    ? 'text-[var(--color-brand)]' :
-                                        'text-[var(--text-muted)]'
+            return (
+              <div key={lesson.id}>
+                {/* Island node */}
+                <div className={cn('flex', isLeft ? 'justify-start' : 'justify-end')}>
+                  <motion.div
+                    initial={{ scale: 0.7, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: i * 0.09, type: 'spring', stiffness: 200 }}
+                    className="flex flex-col items-center"
+                    style={{ width: 90 }}
+                  >
+                    {/* Circle */}
+                    {isCompleted || isActive ? (
+                      <Link href={`/chat/${chatId}`} className="group block">
+                        <div className={cn(
+                          'w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-transform group-hover:scale-110',
+                          isCompleted
+                            ? 'bg-green-500 text-white'
+                            : 'bg-[var(--color-brand)] text-white ring-[5px] ring-blue-200 dark:ring-blue-900/50'
                         )}>
-                          Lesson {lesson.lesson_index + 1}
-                          {isCompleted && ' · Done'}
-                          {isActive    && ' · In progress'}
-                          {isLocked    && ' · Locked'}
-                        </p>
-                        <p className="font-semibold text-[var(--text-primary)] text-sm leading-snug">{lesson.title}</p>
-                        <p className="text-xs text-[var(--text-secondary)] mt-0.5 leading-relaxed">{lesson.description}</p>
+                          {isCompleted
+                            ? <CheckCircle size={28} />
+                            : <span className="text-xl font-bold">{i + 1}</span>
+                          }
+                        </div>
+                      </Link>
+                    ) : (
+                      <div className="w-16 h-16 rounded-full flex items-center justify-center bg-[var(--bg-card)] border-2 border-dashed border-[var(--border)] opacity-60">
+                        <Lock size={18} className="text-[var(--text-muted)]" />
                       </div>
-                      {(isCompleted || isActive) && (
-                        <Link
-                          href={`/chat/${chatId}`}
-                          className={cn(
-                            'flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center transition-colors',
-                            isCompleted
-                              ? 'bg-green-100 dark:bg-green-900/30 text-[var(--color-green)] hover:bg-green-200'
-                              : 'bg-[var(--color-brand)] text-white hover:opacity-90'
-                          )}
-                        >
-                          <ArrowRight size={14} />
-                        </Link>
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
+                    )}
+
+                    {/* Label */}
+                    <p className={cn(
+                      'text-[10px] font-semibold text-center mt-1.5 leading-tight w-[80px]',
+                      isCompleted ? 'text-green-600 dark:text-green-400' :
+                      isActive    ? 'text-[var(--color-brand)]' :
+                                    'text-[var(--text-muted)]'
+                    )}>
+                      {lesson.title}
+                    </p>
+
+                    {/* Star badge for completed */}
+                    {isCompleted && (
+                      <div className="flex items-center gap-0.5 mt-1">
+                        {[0, 1, 2].map((s) => (
+                          <Star key={s} size={9} className="text-yellow-400 fill-yellow-400" />
+                        ))}
+                      </div>
+                    )}
+                  </motion.div>
+                </div>
+
+                {/* Zig-zag connector to next island */}
+                {!isLast && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: i * 0.09 + 0.15 }}
+                    className={cn(
+                      'h-10 my-1',
+                      isLeft
+                        ? 'border-l-[3px] border-b-[3px] rounded-bl-[36px]'
+                        : 'border-r-[3px] border-b-[3px] rounded-br-[36px]',
+                      isCompleted
+                        ? 'border-green-400 dark:border-green-500'
+                        : 'border-[var(--border)]'
+                    )}
+                    style={{ marginLeft: '12%', marginRight: '12%' }}
+                  />
+                )}
+              </div>
+            );
+          })}
         </div>
 
         {/* CTA */}
-        <div className="mt-4">
-          {allDone ? (
-            <div className="text-center py-8">
-              <div className="w-16 h-16 rounded-2xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-3">
-                <CheckCircle size={30} className="text-[var(--color-green)]" />
-              </div>
-              <p className="font-bold text-[var(--text-primary)] mb-1">All lessons complete!</p>
-              <p className="text-sm text-[var(--text-secondary)] mb-4">You earned +{lessons.length * 50} XP on this course.</p>
-              <Link
-                href="/dashboard"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--color-brand)] text-white text-sm font-semibold"
-              >
-                Back to Dashboard <ArrowRight size={14} />
-              </Link>
+        {allDone ? (
+          <div className="text-center py-6">
+            <div className="flex justify-center gap-1 mb-3">
+              {[0, 1, 2].map((s) => (
+                <Star key={s} size={28} className="text-yellow-400 fill-yellow-400" />
+              ))}
             </div>
-          ) : (
+            <p className="font-bold text-[var(--text-primary)] mb-1">All done!</p>
+            <p className="text-sm text-[var(--text-secondary)] mb-4">You earned +{lessons.length * 50} XP.</p>
             <Link
-              href={`/chat/${chatId}`}
-              className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-[var(--color-brand)] text-white font-semibold text-sm hover:bg-[var(--color-brand-hover)] transition-colors"
+              href="/dashboard"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--color-brand)] text-white text-sm font-semibold"
             >
-              Continue Learning
-              <ArrowRight size={16} />
+              Back to Dashboard <ArrowRight size={14} />
             </Link>
-          )}
-        </div>
+          </div>
+        ) : (
+          <Link
+            href={`/chat/${chatId}`}
+            className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-[var(--color-brand)] text-white font-semibold text-sm hover:bg-[var(--color-brand-hover)] transition-colors"
+          >
+            Continue Learning
+            <ArrowRight size={16} />
+          </Link>
+        )}
       </div>
     </Layout>
   );
