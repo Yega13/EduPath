@@ -112,7 +112,7 @@ Return ONLY this JSON:
     .from('chats')
     .update({
       title: plan.chat_title,
-      plan,
+      plan: { ...plan, teaching_started_at: new Date().toISOString() },
       total_lessons: plan.lessons.length,
       current_lesson_index: 0,
       status: 'active',

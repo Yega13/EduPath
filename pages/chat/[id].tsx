@@ -33,6 +33,7 @@ interface Chat {
   current_lesson_index: number;
   total_lessons: number;
   status: string;
+  plan?: { teaching_started_at?: string };
 }
 
 export default function ChatDetail({ id }: { id: string }) {
@@ -249,6 +250,10 @@ export default function ChatDetail({ id }: { id: string }) {
 
   const isDiscovering = lessons.length === 0;
   const allDone = !isDiscovering && chat ? chat.current_lesson_index >= chat.total_lessons && chat.total_lessons > 0 : false;
+  const teachingCutoff = chat?.plan?.teaching_started_at;
+  const visibleMessages = teachingCutoff
+    ? messages.filter((m) => m.created_at >= teachingCutoff)
+    : messages;
   const rawQuestion = [...messages].reverse().find((m) => m.role === 'assistant')?.content ?? '';
   const parsed = parseQuestion(rawQuestion);
   const answeredCount = messages.filter((m) => m.role === 'user').length;
@@ -601,7 +606,7 @@ export default function ChatDetail({ id }: { id: string }) {
               </div>
             )}
 
-            {messages.map((msg) => (
+            {visibleMessages.map((msg) => (
               <div key={msg.id} className={cn('flex', msg.role === 'user' ? 'justify-end' : 'justify-start')}>
                 <div className={cn('max-w-[76%]', msg.role === 'user' ? 'items-end' : 'items-start')}>
                   {msg.role === 'assistant' && (
