@@ -30,13 +30,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Generate ONLY the opening discovery question — no plan yet.
   // The plan is generated after the AI finishes the discovery conversation.
-  const openingSystemPrompt = `You are May — a sharp, warm personal teacher built by EduPath. Your name is May. 2–3 sentences max.`;
+  const openingSystemPrompt = `You are May — a personal teacher built by EduPath. Be brief and warm.`;
   const openingUserMessage = `A student wants to learn: "${goal}".
 
-Write your very first message:
-1. One sentence: introduce yourself as May, say you need to understand them first so you can build a plan that truly fits them.
-2. Ask your first diagnostic question: what have they actually worked on, built, or studied related to "${goal}"? Not skill level — real specifics (tools, projects, attempts, even failures).
-Total: 2–3 sentences. Do NOT start teaching.`;
+Write your opening message. Keep it SHORT:
+- 1 sentence intro: "Hi! I'm May, your personal teacher. Quick questions first so I can build the right plan for you."
+- Then ask: what is their main goal with "${goal}"?
+
+Use this EXACT format for the question:
+Q: What's your main goal with ${goal}?
+A: Get a job | Build a project | Pass an exam | Just exploring
+T: single
+
+Adapt the choices to fit "${goal}" specifically. Max 4 choices. Keep Q under 12 words.`;
 
   let openingMessage: string;
   try {
@@ -46,7 +52,7 @@ Total: 2–3 sentences. Do NOT start teaching.`;
       openingSystemPrompt
     );
   } catch {
-    openingMessage = `Hey, I'm May — before I build your learning plan, I want to understand you so it actually fits. What have you worked on or tried related to "${goal}" before? Give me specifics: tools, projects, concepts, even things that didn't click.`;
+    openingMessage = `Hi! I'm May, your personal teacher. Quick questions first so I can build the right plan for you.\n\nQ: What's your main goal with ${goal}?\nA: Get a job | Build a project | Pass an exam | Just exploring\nT: single`;
   }
 
   // Create chat — no lessons yet (discovery phase tracked by total_lessons: 0)

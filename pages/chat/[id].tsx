@@ -59,6 +59,7 @@ export default function ChatDetail({ id }: { id: string }) {
     isFinal: boolean;
   }
   const [celebration, setCelebration] = useState<CelebrationData | null>(null);
+  const [selectedChoices, setSelectedChoices] = useState<string[]>([]);
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef  = useRef<HTMLTextAreaElement>(null);
@@ -94,11 +95,23 @@ export default function ChatDetail({ id }: { id: string }) {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const sendMessage = async () => {
-    if (!input.trim() || sending || !user || !chat) return;
+  function parseQuestion(content: string) {
+    const m = content.match(/^([\s\S]*?)Q:\s*(.+?)\nA:\s*(.+?)\nT:\s*(single|multiple)\s*$/m);
+    if (m) return {
+      preamble: m[1].trim(),
+      text: m[2].trim(),
+      choices: m[3].split('|').map((c) => c.trim()).filter(Boolean),
+      type: m[4] as 'single' | 'multiple',
+    };
+    return { preamble: '', text: content.trim(), choices: undefined, type: 'text' as const };
+  }
 
-    const userMsg = input.trim();
-    setInput('');
+  const sendMessage = async (overrideMsg?: string) => {
+    const userMsg = (overrideMsg ?? input).trim();
+    if (!userMsg || sending || !user || !chat) return;
+
+    if (!overrideMsg) setInput('');
+    setSelectedChoices([]);
     setSending(true);
 
     const tempId = `tmp-${Date.now()}`;
@@ -236,7 +249,8 @@ export default function ChatDetail({ id }: { id: string }) {
 
   const isDiscovering = lessons.length === 0;
   const allDone = !isDiscovering && chat ? chat.current_lesson_index >= chat.total_lessons && chat.total_lessons > 0 : false;
-  const currentQuestion = [...messages].reverse().find((m) => m.role === 'assistant')?.content ?? '';
+  const rawQuestion = [...messages].reverse().find((m) => m.role === 'assistant')?.content ?? '';
+  const parsed = parseQuestion(rawQuestion);
   const answeredCount = messages.filter((m) => m.role === 'user').length;
 
   // ── Plan-generating full-screen state ──────────────────────────────────────
@@ -286,41 +300,103 @@ export default function ChatDetail({ id }: { id: string }) {
             {/* Question card */}
             <AnimatePresence mode="wait">
               <motion.div
-                key={currentQuestion}
+                key={rawQuestion}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -12 }}
                 transition={{ duration: 0.22 }}
                 className="w-full max-w-lg bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl px-8 py-7 mb-6 shadow-sm"
               >
-                <p className="text-[var(--text-primary)] text-base leading-relaxed font-medium">
-                  {currentQuestion || '…'}
+                {parsed.preamble && (
+                  <p className="text-sm text-[var(--text-secondary)] mb-4 leading-relaxed">{parsed.preamble}</p>
+                )}
+                <p className="text-[var(--text-primary)] text-base leading-relaxed font-semibold">
+                  {parsed.text || '…'}
                 </p>
               </motion.div>
             </AnimatePresence>
 
-            {/* Answer input */}
+            {/* Answer area */}
             <div className="w-full max-w-lg">
-              <textarea
-                ref={inputRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Your answer…"
-                rows={3}
-                className="w-full px-5 py-4 rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-primary)] text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[var(--color-brand)] transition placeholder-[var(--text-muted)] mb-3"
-              />
-              <button
-                onClick={sendMessage}
-                disabled={!input.trim() || sending}
-                className="w-full py-3.5 rounded-2xl bg-[var(--color-brand)] text-white font-semibold text-sm hover:bg-[var(--color-brand-hover)] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {sending ? (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <>Continue <Send size={14} /></>
-                )}
-              </button>
+              {parsed.choices ? (
+                <>
+                  {/* Single-select */}
+                  {parsed.type === 'single' && (
+                    <div className="grid grid-cols-1 gap-2 mb-4">
+                      {parsed.choices.map((choice) => (
+                        <button
+                          key={choice}
+                          onClick={() => setSelectedChoices([choice])}
+                          className={cn(
+                            'w-full px-5 py-3.5 rounded-2xl border text-sm font-medium text-left transition-all',
+                            selectedChoices[0] === choice
+                              ? 'border-[var(--color-brand)] bg-blue-50 dark:bg-blue-900/20 text-[var(--color-brand)]'
+                              : 'border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-primary)] hover:border-[var(--color-brand)]'
+                          )}
+                        >
+                          {choice}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {/* Multi-select */}
+                  {parsed.type === 'multiple' && (
+                    <div className="grid grid-cols-1 gap-2 mb-4">
+                      {parsed.choices.map((choice) => {
+                        const checked = selectedChoices.includes(choice);
+                        return (
+                          <button
+                            key={choice}
+                            onClick={() => setSelectedChoices((prev) =>
+                              checked ? prev.filter((c) => c !== choice) : [...prev, choice]
+                            )}
+                            className={cn(
+                              'w-full px-5 py-3.5 rounded-2xl border text-sm font-medium text-left flex items-center gap-3 transition-all',
+                              checked
+                                ? 'border-[var(--color-brand)] bg-blue-50 dark:bg-blue-900/20 text-[var(--color-brand)]'
+                                : 'border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-primary)] hover:border-[var(--color-brand)]'
+                            )}
+                          >
+                            <span className={cn(
+                              'w-4 h-4 rounded flex-shrink-0 border-2 flex items-center justify-center',
+                              checked ? 'border-[var(--color-brand)] bg-[var(--color-brand)]' : 'border-[var(--border)]'
+                            )}>
+                              {checked && <span className="text-white text-[10px] font-bold">✓</span>}
+                            </span>
+                            {choice}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                  <button
+                    onClick={() => sendMessage(selectedChoices.join(', '))}
+                    disabled={selectedChoices.length === 0 || sending}
+                    className="w-full py-3.5 rounded-2xl bg-[var(--color-brand)] text-white font-semibold text-sm hover:bg-[var(--color-brand-hover)] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {sending ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <>Continue <Send size={14} /></>}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <textarea
+                    ref={inputRef}
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Your answer…"
+                    rows={3}
+                    className="w-full px-5 py-4 rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-primary)] text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[var(--color-brand)] transition placeholder-[var(--text-muted)] mb-3"
+                  />
+                  <button
+                    onClick={() => sendMessage()}
+                    disabled={!input.trim() || sending}
+                    className="w-full py-3.5 rounded-2xl bg-[var(--color-brand)] text-white font-semibold text-sm hover:bg-[var(--color-brand-hover)] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {sending ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <>Continue <Send size={14} /></>}
+                  </button>
+                </>
+              )}
               {answeredCount > 0 && (
                 <p className="text-center text-[11px] text-[var(--text-muted)] mt-3">
                   {answeredCount} question{answeredCount !== 1 ? 's' : ''} answered

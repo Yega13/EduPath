@@ -6,7 +6,7 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import Head from 'next/head';
-import { Sparkles, ArrowRight, BookOpen, Map, ChevronDown } from 'lucide-react';
+import { Sparkles, ArrowRight, BookOpen, Map, ChevronDown, Trash2 } from 'lucide-react';
 
 
 import Layout from '@/components/Layout';
@@ -30,10 +30,12 @@ export default function ChatIndex() {
 
   const [goal, setGoal]         = useState('');
   const [building, setBuilding] = useState(false);
-  const [error, setError]           = useState('');
+  const [error, setError]       = useState('');
   const [activeChats, setActiveChats] = useState<ActiveChat[]>([]);
   const [chatsLoaded, setChatsLoaded] = useState(false);
   const [showNewPath, setShowNewPath] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) router.replace('/auth');
@@ -54,6 +56,23 @@ export default function ChatIndex() {
         if (!data || data.length === 0) setShowNewPath(true);
       });
   }, [user]);
+
+  const handleDelete = async (chatId: string) => {
+    if (confirmDeleteId !== chatId) { setConfirmDeleteId(chatId); return; }
+    setDeleting(true);
+    try {
+      const { data: { session } } = await getBrowserClient().auth.getSession();
+      await fetch('/api/delete-chat', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token ?? ''}` },
+        body: JSON.stringify({ chatId }),
+      });
+      setActiveChats((prev) => prev.filter((c) => c.id !== chatId));
+    } finally {
+      setDeleting(false);
+      setConfirmDeleteId(null);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,7 +119,7 @@ export default function ChatIndex() {
   return (
     <Layout>
       <Head><title>Learn — EduPath</title></Head>
-      <div className="max-w-lg mx-auto px-4 py-10">
+      <div className="max-w-lg mx-auto px-4 py-10" onClick={() => setConfirmDeleteId(null)}>
 
         {/* Active chats section */}
         {activeChats.length > 0 && (
@@ -148,6 +167,19 @@ export default function ChatIndex() {
                         <Map size={11} />
                         View roadmap
                       </Link>
+                      <button
+                        onClick={() => handleDelete(chat.id)}
+                        disabled={deleting && confirmDeleteId === chat.id}
+                        className={cn(
+                          'ml-auto inline-flex items-center gap-1 text-[10px] font-medium transition-colors px-2 py-0.5 rounded-md',
+                          confirmDeleteId === chat.id
+                            ? 'text-red-500 bg-red-50 dark:bg-red-900/20'
+                            : 'text-[var(--text-muted)] hover:text-red-500'
+                        )}
+                      >
+                        <Trash2 size={11} />
+                        {confirmDeleteId === chat.id ? 'Confirm?' : 'Delete'}
+                      </button>
                     </div>
                   </div>
                 );
