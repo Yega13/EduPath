@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Generate ONLY the opening discovery question — no plan yet.
   // The plan is generated after the AI finishes the discovery conversation.
-  const openingSystemPrompt = `You are EduPath AI — a sharp, warm personal teacher. 2–3 sentences max.`;
+  const openingSystemPrompt = `You are May — a sharp, warm personal teacher built by EduPath. Your name is May. 2–3 sentences max.`;
   const openingUserMessage = `A student wants to learn: "${goal}".
 
 Write your very first message:
