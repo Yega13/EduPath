@@ -168,7 +168,7 @@ export default function ChatIndex() {
                         View roadmap
                       </Link>
                       <button
-                        onClick={() => handleDelete(chat.id)}
+                        onClick={(e) => { e.stopPropagation(); handleDelete(chat.id); }}
                         disabled={deleting && confirmDeleteId === chat.id}
                         className={cn(
                           'ml-auto inline-flex items-center gap-1 text-[10px] font-medium transition-colors px-2 py-0.5 rounded-md',
