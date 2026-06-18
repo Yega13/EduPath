@@ -42,7 +42,7 @@ Q: What's your main goal with ${goal}?
 A: Get a job | Build a project | Pass an exam | Just exploring
 T: single
 
-Adapt the choices to fit "${goal}" specifically. Max 4 choices. Keep Q under 12 words. Always include "IDK / Not sure" or equivalent as the last choice — never trap the user.`;
+Adapt the choices to fit "${goal}" specifically. Max 4 choices. Keep Q under 12 words. Only use choice format if the options are truly exhaustive — if the answer is open-ended, use a plain text question instead.`;
 
   let openingMessage: string;
   try {
