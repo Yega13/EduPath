@@ -236,6 +236,102 @@ export default function ChatDetail({ id }: { id: string }) {
 
   const isDiscovering = lessons.length === 0;
   const allDone = !isDiscovering && chat ? chat.current_lesson_index >= chat.total_lessons && chat.total_lessons > 0 : false;
+  const currentQuestion = [...messages].reverse().find((m) => m.role === 'assistant')?.content ?? '';
+  const answeredCount = messages.filter((m) => m.role === 'user').length;
+
+  // ── Plan-generating full-screen state ──────────────────────────────────────
+  if (generatingPlan) {
+    return (
+      <Layout fullscreen>
+        <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-[var(--bg-primary)]">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center"
+          >
+            <div className="w-16 h-16 rounded-2xl bg-[var(--color-brand)] flex items-center justify-center mx-auto mb-6">
+              <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            </div>
+            <h2 className="text-xl font-bold text-[var(--text-primary)] mb-2">Building your personalized plan…</h2>
+            <p className="text-sm text-[var(--text-muted)]">May is designing a path based on everything you shared.</p>
+          </motion.div>
+        </div>
+      </Layout>
+    );
+  }
+
+  // ── Discovery wizard ────────────────────────────────────────────────────────
+  if (isDiscovering) {
+    return (
+      <Layout fullscreen>
+        <div className="min-h-screen flex flex-col bg-[var(--bg-primary)]">
+          {/* Back link */}
+          <div className="px-6 pt-5">
+            <Link href="/chat" className="inline-flex items-center gap-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
+              <ChevronLeft size={14} />
+              {t('chat.back_to_chats')}
+            </Link>
+          </div>
+
+          <div className="flex-1 flex flex-col items-center justify-center px-4 py-10">
+            {/* May avatar + label */}
+            <div className="text-center mb-8">
+              <div className="w-14 h-14 rounded-2xl bg-[var(--color-brand)] flex items-center justify-center mx-auto mb-3 shadow-md">
+                <span className="text-white text-xl font-extrabold">M</span>
+              </div>
+              <p className="text-xs font-semibold text-[var(--color-brand)] uppercase tracking-wider">May</p>
+              <p className="text-xs text-[var(--text-muted)] mt-0.5">Getting to know you — {chat?.title}</p>
+            </div>
+
+            {/* Question card */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentQuestion}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.22 }}
+                className="w-full max-w-lg bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl px-8 py-7 mb-6 shadow-sm"
+              >
+                <p className="text-[var(--text-primary)] text-base leading-relaxed font-medium">
+                  {currentQuestion || '…'}
+                </p>
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Answer input */}
+            <div className="w-full max-w-lg">
+              <textarea
+                ref={inputRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Your answer…"
+                rows={3}
+                className="w-full px-5 py-4 rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-primary)] text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[var(--color-brand)] transition placeholder-[var(--text-muted)] mb-3"
+              />
+              <button
+                onClick={sendMessage}
+                disabled={!input.trim() || sending}
+                className="w-full py-3.5 rounded-2xl bg-[var(--color-brand)] text-white font-semibold text-sm hover:bg-[var(--color-brand-hover)] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {sending ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <>Continue <Send size={14} /></>
+                )}
+              </button>
+              {answeredCount > 0 && (
+                <p className="text-center text-[11px] text-[var(--text-muted)] mt-3">
+                  {answeredCount} question{answeredCount !== 1 ? 's' : ''} answered
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout fullscreen>
@@ -341,26 +437,6 @@ export default function ChatDetail({ id }: { id: string }) {
           </div>
 
           <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
-            {/* Discovery / plan-generating state */}
-            {lessons.length === 0 && (
-              <div className="p-4 text-center">
-                {generatingPlan ? (
-                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                    <div className="w-8 h-8 border-2 border-[var(--color-brand)] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-                    <p className="text-xs font-semibold text-[var(--color-brand)] mb-1">Building your plan…</p>
-                    <p className="text-[10px] text-[var(--text-muted)]">Personalizing based on your answers</p>
-                  </motion.div>
-                ) : (
-                  <div>
-                    <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center mx-auto mb-3">
-                      <BookOpen size={16} className="text-[var(--color-brand)]" />
-                    </div>
-                    <p className="text-xs font-semibold text-[var(--text-secondary)] mb-1">Your plan is coming</p>
-                    <p className="text-[10px] text-[var(--text-muted)] leading-relaxed">Answer the questions and your personalized lesson plan will appear here.</p>
-                  </div>
-                )}
-              </div>
-            )}
             {lessons.map((lesson) => (
               <div
                 key={lesson.id}
