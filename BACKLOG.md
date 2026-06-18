@@ -3,7 +3,7 @@
 ## UX Polish
 - [x] Profile page: after saving, sync `full_name` to Supabase `user_metadata` — DONE Day 4
 - [x] Auth page: after sign-in, if there's a `?next=` param in URL, redirect there — DONE Day 4
-- [ ] Add skeleton loaders to: profile page, opportunities list, leaderboard
+- [x] Add skeleton loaders to: profile page, opportunities list, leaderboard — DONE Day 6
 - [x] Mobile: bottom nav active state highlight — DONE Day 5
 
 ## Content

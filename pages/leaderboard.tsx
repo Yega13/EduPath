@@ -18,13 +18,15 @@ interface Entry {
 
 export default function Leaderboard({ profiles }: { profiles: Entry[] }) {
   const { t } = useTranslation('common');
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null | undefined>(undefined);
 
   useEffect(() => {
     getBrowserClient().auth.getUser().then(({ data: { user } }) => {
       setCurrentUserId(user?.id ?? null);
     });
   }, []);
+
+  const authLoading = currentUserId === undefined;
 
   const top3 = profiles.slice(0, 3);
 
@@ -88,7 +90,21 @@ export default function Leaderboard({ profiles }: { profiles: Entry[] }) {
 
         {/* Full list */}
         <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl overflow-hidden">
-          {profiles.length === 0 ? (
+          {authLoading ? (
+            <ul className="divide-y divide-[var(--border)]">
+              {Array.from({ length: Math.min(profiles.length || 5, 8) }).map((_, i) => (
+                <li key={i} className="flex items-center gap-4 px-5 py-3.5 animate-pulse">
+                  <div className="w-6 h-4 bg-[var(--border)] rounded flex-shrink-0" />
+                  <div className="w-8 h-8 rounded-xl bg-[var(--border)] flex-shrink-0" />
+                  <div className="flex-1 space-y-1.5">
+                    <div className="h-3.5 bg-[var(--border)] rounded w-32" />
+                    <div className="h-2.5 bg-[var(--border)] rounded w-20" />
+                  </div>
+                  <div className="w-12 h-4 bg-[var(--border)] rounded flex-shrink-0" />
+                </li>
+              ))}
+            </ul>
+          ) : profiles.length === 0 ? (
             <div className="px-5 py-12 text-center">
               <Trophy size={32} className="text-[var(--text-muted)] mx-auto mb-3" />
               <p className="text-sm text-[var(--text-muted)]">{t('leaderboard.empty')}</p>

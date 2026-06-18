@@ -1,7 +1,8 @@
 import { GetServerSideProps } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useTranslation } from 'next-i18next';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Head from 'next/head';
 import { Calendar, Globe, ExternalLink } from 'lucide-react';
@@ -46,9 +47,45 @@ function daysLeft(deadline: string | null): number | null {
 
 const ALL_TYPES = ['all', 'competition', 'scholarship', 'internship', 'grant', 'course', 'fellowship'];
 
+function EventCardSkeleton() {
+  return (
+    <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-5 flex flex-col gap-3 animate-pulse">
+      <div className="flex items-start justify-between gap-2">
+        <div className="h-5 w-24 bg-[var(--border)] rounded-full" />
+        <div className="h-4 w-16 bg-[var(--border)] rounded" />
+      </div>
+      <div className="space-y-2">
+        <div className="h-4 bg-[var(--border)] rounded w-3/4" />
+        <div className="h-3 bg-[var(--border)] rounded w-full" />
+        <div className="h-3 bg-[var(--border)] rounded w-2/3" />
+      </div>
+      <div className="h-3 w-32 bg-[var(--border)] rounded" />
+      <div className="flex gap-2 mt-auto pt-1">
+        <div className="h-8 w-20 bg-[var(--border)] rounded-xl" />
+        <div className="h-8 w-24 bg-[var(--border)] rounded-xl" />
+      </div>
+    </div>
+  );
+}
+
 export default function Opportunities({ events }: Props) {
   const { t } = useTranslation('common');
+  const router = useRouter();
   const [activeFilter, setActiveFilter] = useState('all');
+  const [pageLoading, setPageLoading] = useState(false);
+
+  useEffect(() => {
+    const start = () => setPageLoading(true);
+    const done  = () => setPageLoading(false);
+    router.events.on('routeChangeStart',    start);
+    router.events.on('routeChangeComplete', done);
+    router.events.on('routeChangeError',    done);
+    return () => {
+      router.events.off('routeChangeStart',    start);
+      router.events.off('routeChangeComplete', done);
+      router.events.off('routeChangeError',    done);
+    };
+  }, [router.events]);
 
   const filtered = activeFilter === 'all'
     ? events
@@ -81,7 +118,11 @@ export default function Opportunities({ events }: Props) {
           ))}
         </div>
 
-        {filtered.length === 0 ? (
+        {pageLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => <EventCardSkeleton key={i} />)}
+          </div>
+        ) : filtered.length === 0 ? (
           <p className="text-sm text-[var(--text-muted)]">{t('opportunities.no_events')}</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
