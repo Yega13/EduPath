@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { useState, useRef, useEffect } from 'react';
 import { Trophy, ChevronDown } from 'lucide-react';
 import { useTranslation } from 'next-i18next';
+import { motion } from 'framer-motion';
 import ThemeToggle from './ThemeToggle';
 import LanguageToggle from './LanguageToggle';
 import { cn } from '@/lib/utils';
@@ -13,7 +14,25 @@ export default function Navbar() {
   const { pathname } = useRouter();
   const [leaderboardOpen, setLeaderboardOpen] = useState(false);
   const [userInitial, setUserInitial] = useState('?');
+  const [visible, setVisible] = useState(true);
   const leaderboardRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let lastScrollY = window.scrollY;
+    const handleScroll = () => {
+      const current = window.scrollY;
+      if (current < 80) {
+        setVisible(true);
+      } else if (current > lastScrollY) {
+        setVisible(false);
+      } else {
+        setVisible(true);
+      }
+      lastScrollY = current;
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     const supabase = getBrowserClient();
@@ -36,79 +55,87 @@ export default function Navbar() {
   }, []);
 
   const NAV_LINKS = [
-    { href: '/dashboard',    label: t('nav.dashboard') },
-    { href: '/chat',         label: t('nav.learn') },
-    { href: '/opportunities',label: t('nav.opportunities') },
-    { href: '/about',        label: t('nav.about') },
+    { href: '/dashboard',     label: t('nav.dashboard') },
+    { href: '/chat',          label: t('nav.learn') },
+    { href: '/opportunities', label: t('nav.opportunities') },
+    { href: '/about',         label: t('nav.about') },
   ];
 
   return (
-    <header className="hidden md:block sticky top-0 z-50 bg-[var(--bg-secondary)] border-b border-[var(--border)]">
-      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-        <Link href="/" className="font-bold text-xl text-[var(--color-brand)]">
-          Himq
-        </Link>
+    <motion.header
+      initial={{ y: -80, opacity: 0 }}
+      animate={{ y: visible ? 0 : -100, opacity: visible ? 1 : 0 }}
+      transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] as [number, number, number, number] }}
+      className="hidden md:block fixed top-4 inset-x-0 z-50 px-4"
+    >
+      <div className="max-w-6xl mx-auto">
+        <div className="flex items-center justify-between px-5 py-2.5 rounded-2xl bg-[var(--bg-secondary)]/90 backdrop-blur-xl border border-[var(--border)] shadow-[0_4px_24px_rgba(0,0,0,0.10)]">
 
-        <nav className="flex items-center gap-1">
-          {NAV_LINKS.map(({ href, label }) => (
-            <Link
-              key={href}
-              href={href}
-              className={cn(
-                'px-4 py-2 rounded-lg text-[15px] font-medium transition-colors',
-                pathname === href || pathname.startsWith(href + '/')
-                  ? 'bg-[var(--color-brand)] text-white'
-                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border)]'
-              )}
-            >
-              {label}
-            </Link>
-          ))}
-        </nav>
-
-        <div className="flex items-center gap-2">
-          <div className="relative" ref={leaderboardRef}>
-            <button
-              onClick={() => setLeaderboardOpen((v) => !v)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[15px] font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border)] transition-colors"
-            >
-              <Trophy size={16} />
-              {t('nav.leaderboard')}
-              <ChevronDown size={14} className={cn('transition-transform', leaderboardOpen && 'rotate-180')} />
-            </button>
-
-            {leaderboardOpen && (
-              <div className="absolute right-0 top-full mt-2 w-72 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl shadow-[var(--shadow-lg)] animate-fade-in overflow-hidden">
-                <div className="p-3 border-b border-[var(--border)]">
-                  <p className="text-sm font-semibold text-[var(--text-primary)]">Top Learners</p>
-                </div>
-                <div className="p-2 max-h-80 overflow-y-auto">
-                  <p className="text-xs text-[var(--text-muted)] text-center py-4">Coming soon</p>
-                </div>
-                <div className="p-2 border-t border-[var(--border)]">
-                  <Link
-                    href="/leaderboard"
-                    onClick={() => setLeaderboardOpen(false)}
-                    className="block text-center text-xs text-[var(--color-brand)] hover:underline py-1"
-                  >
-                    View full leaderboard →
-                  </Link>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <LanguageToggle />
-          <ThemeToggle />
-
-          <Link
-            href="/profile"
-            className="w-8 h-8 rounded-full bg-[var(--color-brand)] flex items-center justify-center text-white text-sm font-semibold"
-          >
-            {userInitial}
+          <Link href="/" className="font-bold text-xl text-[var(--color-brand)]">
+            Himq
           </Link>
+
+          <nav className="flex items-center gap-0.5">
+            {NAV_LINKS.map(({ href, label }) => (
+              <Link
+                key={href}
+                href={href}
+                className={cn(
+                  'px-4 py-2 rounded-lg text-[15px] font-medium transition-colors',
+                  pathname === href || pathname.startsWith(href + '/')
+                    ? 'bg-[var(--color-brand)] text-white'
+                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border)]'
+                )}
+              >
+                {label}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="flex items-center gap-2">
+            <div className="relative" ref={leaderboardRef}>
+              <button
+                onClick={() => setLeaderboardOpen((v) => !v)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[15px] font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border)] transition-colors"
+              >
+                <Trophy size={16} />
+                {t('nav.leaderboard')}
+                <ChevronDown size={14} className={cn('transition-transform duration-200', leaderboardOpen && 'rotate-180')} />
+              </button>
+
+              {leaderboardOpen && (
+                <div className="absolute right-0 top-full mt-2 w-72 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl shadow-[var(--shadow-lg)] animate-fade-in overflow-hidden">
+                  <div className="p-3 border-b border-[var(--border)]">
+                    <p className="text-sm font-semibold text-[var(--text-primary)]">Top Learners</p>
+                  </div>
+                  <div className="p-2 max-h-80 overflow-y-auto">
+                    <p className="text-xs text-[var(--text-muted)] text-center py-4">Coming soon</p>
+                  </div>
+                  <div className="p-2 border-t border-[var(--border)]">
+                    <Link
+                      href="/leaderboard"
+                      onClick={() => setLeaderboardOpen(false)}
+                      className="block text-center text-xs text-[var(--color-brand)] hover:underline py-1"
+                    >
+                      View full leaderboard →
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <LanguageToggle />
+            <ThemeToggle />
+
+            <Link
+              href="/profile"
+              className="w-8 h-8 rounded-full bg-[var(--color-brand)] flex items-center justify-center text-white text-sm font-semibold"
+            >
+              {userInitial}
+            </Link>
+          </div>
         </div>
       </div>
-    </header>
+    </motion.header>
   );
 }

@@ -102,17 +102,17 @@ function FaqItem({ q, a, index }: { q: string; a: string; index: number }) {
     >
       <button
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between gap-4 py-5 text-left group"
+        className="w-full flex items-center justify-between gap-6 py-6 text-left group"
       >
-        <span className="text-base font-semibold text-[var(--text-primary)] group-hover:text-[var(--color-brand)] transition-colors leading-snug">
+        <span className="text-lg font-semibold text-[var(--text-primary)] group-hover:text-[var(--color-brand)] transition-colors leading-snug">
           {q}
         </span>
         <motion.span
           animate={{ rotate: open ? 45 : 0 }}
           transition={{ duration: 0.25, ease: EASE }}
-          className="flex-shrink-0 w-7 h-7 rounded-full border border-[var(--border)] flex items-center justify-center text-[var(--text-muted)] group-hover:border-[var(--color-brand)] group-hover:text-[var(--color-brand)] transition-colors"
+          className="flex-shrink-0 w-8 h-8 rounded-full border border-[var(--border)] flex items-center justify-center text-[var(--text-muted)] group-hover:border-[var(--color-brand)] group-hover:text-[var(--color-brand)] transition-colors"
         >
-          <Plus size={14} />
+          <Plus size={16} />
         </motion.span>
       </button>
 
@@ -126,7 +126,7 @@ function FaqItem({ q, a, index }: { q: string; a: string; index: number }) {
             transition={{ duration: 0.32, ease: EASE }}
             style={{ overflow: 'hidden' }}
           >
-            <p className="pb-5 text-[var(--text-secondary)] leading-relaxed text-sm">
+            <p className="pb-6 text-[var(--text-secondary)] leading-relaxed text-base">
               {a}
             </p>
           </motion.div>
@@ -263,18 +263,18 @@ export default function AboutPage() {
       </section>
 
       {/* ── FAQ ───────────────────────────────────────────────── */}
-      <section className="max-w-3xl mx-auto px-4 py-20">
-        <motion.div {...fadeUp()} className="text-center mb-14">
+      <section className="max-w-4xl mx-auto px-4 py-24">
+        <motion.div {...fadeUp()} className="text-center mb-16">
           <p className="text-xs font-bold uppercase tracking-widest text-[var(--color-brand)] mb-3">FAQ</p>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[var(--text-primary)] mb-3">
+          <h2 className="text-4xl sm:text-5xl font-extrabold text-[var(--text-primary)] mb-4">
             Frequently asked questions
           </h2>
-          <p className="text-[var(--text-secondary)] max-w-xl mx-auto">
+          <p className="text-lg text-[var(--text-secondary)] max-w-xl mx-auto">
             Everything you need to know about Himq before you sign up.
           </p>
         </motion.div>
 
-        <div className="divide-y divide-[var(--border)] border-t border-[var(--border)]">
+        <div className="border-t border-[var(--border)]">
           {FAQS.map((item, i) => (
             <FaqItem key={i} q={item.q} a={item.a} index={i} />
           ))}
