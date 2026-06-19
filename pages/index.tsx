@@ -130,7 +130,7 @@ export default function Home() {
                 </Link>
                 <Link
                   href="/opportunities"
-                  className="inline-flex items-center justify-center px-7 py-3.5 rounded-xl border border-[var(--border-strong)] bg-[var(--bg-card)] text-[var(--text-primary)] font-semibold text-base hover:border-[var(--color-brand)] hover:text-[var(--color-brand)] transition-colors"
+                  className="inline-flex items-center justify-center px-7 py-3.5 rounded-xl border border-[var(--border-strong)] bg-[var(--bg-card)] text-[var(--text-primary)] font-semibold text-base shadow-[var(--shadow-sm)] hover:border-[var(--color-brand)] hover:text-[var(--color-brand)] hover:shadow-[var(--shadow-md)] transition-all"
                 >
                   {t('home.cta_explore')}
                 </Link>
@@ -162,12 +162,12 @@ export default function Home() {
             {VALUES.map((v) => (
               <div
                 key={v.key}
-                className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] px-4 py-3.5 shadow-[var(--shadow-sm)]"
+                className="flex items-center gap-3 h-full rounded-xl border border-[var(--border)] bg-[var(--bg-card)] px-4 py-4 shadow-[var(--shadow-sm)]"
               >
                 <span className={`flex items-center justify-center w-9 h-9 rounded-lg ${v.bg} ${v.color} shrink-0`}>
                   <v.icon size={18} />
                 </span>
-                <span className="text-sm font-semibold text-[var(--text-primary)]">{t(v.key)}</span>
+                <span className="text-sm font-semibold leading-snug text-[var(--text-primary)]">{t(v.key)}</span>
               </div>
             ))}
           </motion.div>
