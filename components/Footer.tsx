@@ -18,7 +18,7 @@ export default function Footer() {
 
         {/* Brand */}
         <div>
-          <Logo height={36} className="mb-2" />
+          <Logo height={48} className="mb-2" />
           <p className="text-sm text-[var(--text-muted)] leading-relaxed max-w-xs">
             {t('footer.tagline')}
           </p>
