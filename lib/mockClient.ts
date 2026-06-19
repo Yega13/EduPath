@@ -46,14 +46,14 @@ function seedDB(): DB {
 
   return {
     profiles: [
-      { id: 'seed-1', full_name: 'Ani Sargsyan',   username: 'ani',   bio: null, goal: 'Master web development', skill_level: 'advanced',     preferred_language: 'am', xp: 1240, streak_days: 28, created_at: ago(120), email: 'ani@example.com' },
-      { id: 'seed-2', full_name: 'Davit Petrosyan', username: 'davo',  bio: null, goal: 'Get into MIT',           skill_level: 'advanced',     preferred_language: 'en', xp: 1080, streak_days: 19, created_at: ago(110), email: 'davit@example.com' },
-      { id: 'seed-3', full_name: 'Mariam Hakobyan', username: 'mary',  bio: null, goal: 'Learn data science',     skill_level: 'intermediate', preferred_language: 'am', xp: 940,  streak_days: 22, created_at: ago(95),  email: 'mariam@example.com' },
-      { id: 'seed-4', full_name: 'Tigran Avetisyan',username: 'tig',   bio: null, goal: 'Python & AI',            skill_level: 'intermediate', preferred_language: 'am', xp: 760,  streak_days: 11, created_at: ago(80),  email: 'tigran@example.com' },
-      { id: 'seed-5', full_name: 'Nare Grigoryan',  username: 'nare',  bio: null, goal: 'IELTS 8.0',              skill_level: 'beginner',     preferred_language: 'en', xp: 610,  streak_days: 9,  created_at: ago(60),  email: 'nare@example.com' },
-      { id: 'seed-6', full_name: 'Hayk Mkrtchyan',  username: 'hayk',  bio: null, goal: 'Marketing skills',       skill_level: 'beginner',     preferred_language: 'am', xp: 430,  streak_days: 5,  created_at: ago(40),  email: 'hayk@example.com' },
-      { id: 'seed-7', full_name: 'Lilit Khachatryan',username: 'lilit',bio: null, goal: 'UI/UX design',           skill_level: 'intermediate', preferred_language: 'am', xp: 320,  streak_days: 4,  created_at: ago(30),  email: 'lilit@example.com' },
-      { id: 'seed-8', full_name: 'Gor Manukyan',    username: 'gor',   bio: null, goal: 'Learn English',          skill_level: 'beginner',     preferred_language: 'am', xp: 180,  streak_days: 2,  created_at: ago(15),  email: 'gor@example.com' },
+      { id: 'seed-1', full_name: 'Ani Sargsyan',   username: 'ani',   bio: null, goal: 'Master web development', skill_level: 'advanced',     preferred_language: 'am', xp: 1240, streak_days: 28, lessons_completed: 32, weekly_xp: 180, monthly_xp: 520, previous_rank: 1, created_at: ago(120), email: 'ani@example.com' },
+      { id: 'seed-2', full_name: 'Davit Petrosyan', username: 'davo',  bio: null, goal: 'Get into MIT',           skill_level: 'advanced',     preferred_language: 'en', xp: 1080, streak_days: 19, lessons_completed: 28, weekly_xp: 240, monthly_xp: 480, previous_rank: 3, created_at: ago(110), email: 'davit@example.com' },
+      { id: 'seed-3', full_name: 'Mariam Hakobyan', username: 'mary',  bio: null, goal: 'Learn data science',     skill_level: 'intermediate', preferred_language: 'am', xp: 940,  streak_days: 22, lessons_completed: 25, weekly_xp: 150, monthly_xp: 600, previous_rank: 2, created_at: ago(95),  email: 'mariam@example.com' },
+      { id: 'seed-4', full_name: 'Tigran Avetisyan',username: 'tig',   bio: null, goal: 'Python & AI',            skill_level: 'intermediate', preferred_language: 'am', xp: 760,  streak_days: 11, lessons_completed: 18, weekly_xp: 90,  monthly_xp: 300, previous_rank: 5, created_at: ago(80),  email: 'tigran@example.com' },
+      { id: 'seed-5', full_name: 'Nare Grigoryan',  username: 'nare',  bio: null, goal: 'IELTS 8.0',              skill_level: 'beginner',     preferred_language: 'en', xp: 610,  streak_days: 9,  lessons_completed: 14, weekly_xp: 210, monthly_xp: 410, previous_rank: 4, created_at: ago(60),  email: 'nare@example.com' },
+      { id: 'seed-6', full_name: 'Hayk Mkrtchyan',  username: 'hayk',  bio: null, goal: 'Marketing skills',       skill_level: 'beginner',     preferred_language: 'am', xp: 430,  streak_days: 5,  lessons_completed: 9,  weekly_xp: 60,  monthly_xp: 220, previous_rank: 6, created_at: ago(40),  email: 'hayk@example.com' },
+      { id: 'seed-7', full_name: 'Lilit Khachatryan',username: 'lilit',bio: null, goal: 'UI/UX design',           skill_level: 'intermediate', preferred_language: 'am', xp: 320,  streak_days: 4,  lessons_completed: 7,  weekly_xp: 120, monthly_xp: 260, previous_rank: 9, created_at: ago(30),  email: 'lilit@example.com' },
+      { id: 'seed-8', full_name: 'Gor Manukyan',    username: 'gor',   bio: null, goal: 'Learn English',          skill_level: 'beginner',     preferred_language: 'am', xp: 180,  streak_days: 2,  lessons_completed: 4,  weekly_xp: 40,  monthly_xp: 110, previous_rank: 7, created_at: ago(15),  email: 'gor@example.com' },
     ],
     events: [
       { id: 'ev-1', title: 'Armenian National Olympiad in Informatics', description: 'Nationwide competitive programming olympiad for school and university students. Top finishers qualify for the international team.', event_type: 'competition', organizer: 'Ministry of Education', location: 'Yerevan', is_online: false, deadline: inDays(18), link: 'https://example.com', upvote_count: 42, is_approved: true },
@@ -323,6 +323,7 @@ const auth = {
     db.profiles.push({
       id, full_name: fullName, username: null, bio: null, goal: '',
       skill_level: 'beginner', preferred_language: 'am', xp: 0, streak_days: 0,
+      lessons_completed: 0, weekly_xp: 0, monthly_xp: 0, previous_rank: null,
       created_at: new Date().toISOString(), email,
     });
     saveDB(db);

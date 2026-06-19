@@ -1,8 +1,8 @@
 import { GetServerSideProps } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import Head from 'next/head';
-import { Zap, Flame, Trophy } from 'lucide-react';
+import { Zap, Flame, Trophy, Crown, Medal, BookOpenCheck, Search, ArrowUp, ArrowDown, Minus, ChevronDown, Gem, Shield, Award } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'next-i18next';
 import Layout from '@/components/Layout';
@@ -14,172 +14,321 @@ interface Entry {
   full_name: string | null;
   xp: number;
   streak_days: number;
+  lessons_completed: number;
+  weekly_xp: number | null;
+  monthly_xp: number | null;
+  previous_rank: number | null;
+}
+
+interface Ranked {
+  entry: Entry;
+  rank: number;
+  movement: number | null;
+  value: number;
+}
+
+type Period = 'all' | 'week' | 'month';
+
+const TIERS = [
+  { id: 'diamond', min: 2000, icon: Gem, avatar: 'bg-sky-500', badge: 'bg-sky-50 text-sky-600 dark:bg-sky-900/20 dark:text-sky-300' },
+  { id: 'platinum', min: 1200, icon: Shield, avatar: 'bg-cyan-500', badge: 'bg-cyan-50 text-cyan-600 dark:bg-cyan-900/20 dark:text-cyan-300' },
+  { id: 'gold', min: 700, icon: Trophy, avatar: 'bg-yellow-500', badge: 'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-300' },
+  { id: 'silver', min: 300, icon: Medal, avatar: 'bg-slate-400', badge: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300' },
+  { id: 'bronze', min: 0, icon: Award, avatar: 'bg-amber-600', badge: 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-300' },
+];
+function tierFor(xp: number) {
+  return TIERS.find((t) => xp >= t.min) ?? TIERS[TIERS.length - 1];
+}
+
+const PERIODS: { id: Period; key: string }[] = [
+  { id: 'all', key: 'leaderboard.period_all' },
+  { id: 'week', key: 'leaderboard.period_week' },
+  { id: 'month', key: 'leaderboard.period_month' },
+];
+
+const INITIAL_COUNT = 10;
+
+function initial(name: string | null) {
+  return (name ?? 'A').trim().charAt(0).toUpperCase() || 'A';
 }
 
 export default function Leaderboard({ profiles }: { profiles: Entry[] }) {
   const { t } = useTranslation('common');
   const [currentUserId, setCurrentUserId] = useState<string | null | undefined>(undefined);
+  const [period, setPeriod] = useState<Period>('all');
+  const [query, setQuery] = useState('');
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
-    getBrowserClient().auth.getUser().then(({ data: { user } }) => {
-      setCurrentUserId(user?.id ?? null);
-    });
+    getBrowserClient().auth.getUser().then(({ data: { user } }) => setCurrentUserId(user?.id ?? null));
   }, []);
 
-  const authLoading = currentUserId === undefined;
+  const ranked: Ranked[] = useMemo(() => {
+    const m = (e: Entry) => (period === 'week' ? e.weekly_xp ?? 0 : period === 'month' ? e.monthly_xp ?? 0 : e.xp ?? 0);
+    return [...profiles]
+      .sort((a, b) => m(b) - m(a))
+      .map((e, i) => ({
+        entry: e,
+        rank: i + 1,
+        value: m(e),
+        movement: period === 'all' && typeof e.previous_rank === 'number' ? e.previous_rank - (i + 1) : null,
+      }));
+  }, [profiles, period]);
 
-  const top3 = profiles.slice(0, 3);
+  const meRow = currentUserId ? ranked.find((r) => r.entry.id === currentUserId) ?? null : null;
+  const searching = query.trim().length > 0;
+  const q = query.trim().toLowerCase();
+  const matches = useMemo(
+    () => ranked.filter((r) => (r.entry.full_name ?? (t('leaderboard.anonymous') as string)).toLowerCase().includes(q)),
+    [ranked, q, t]
+  );
+
+  const podium = ranked.slice(0, 3);
+  const restAll = ranked.slice(3);
+  const restShown = expanded ? restAll : restAll.slice(0, INITIAL_COUNT);
+
+  const totalLearners = profiles.length;
+  const myTier = tierFor(meRow?.entry.xp ?? 0);
 
   return (
     <Layout>
       <Head><title>{t('leaderboard.title')} — EduPath</title></Head>
-      <div className="max-w-2xl mx-auto px-4 py-8">
-        <div className="flex items-center gap-3 mb-2">
-          <Trophy size={24} className="text-yellow-500" />
-          <h1 className="text-2xl font-bold text-[var(--text-primary)]">{t('leaderboard.title')}</h1>
+      <div className="max-w-3xl mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-1.5">
+          <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-yellow-50 dark:bg-yellow-900/20">
+            <Trophy size={22} className="text-yellow-500" />
+          </span>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)] tracking-tight">{t('leaderboard.title')}</h1>
         </div>
-        <p className="text-sm text-[var(--text-secondary)] mb-8">{t('leaderboard.subtitle')}</p>
+        <p className="text-sm text-[var(--text-secondary)] mb-2">{t('leaderboard.subtitle')}</p>
+        <p className="text-xs text-[var(--color-brand)] font-medium mb-6 flex items-center gap-1.5">
+          <Zap size={13} />
+          {t('leaderboard.reward_hint')}
+        </p>
 
-        {/* Podium */}
-        {top3.length >= 1 && (
-          <div className="flex items-end justify-center gap-3 mb-8">
-            {/* 2nd */}
-            {top3[1] && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="flex-1 bg-slate-50 dark:bg-slate-800/30 border border-[var(--border)] rounded-2xl p-4 text-center"
+        {/* Stats strip */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+          <StatCard label={t('leaderboard.learners')} value={totalLearners} />
+          <StatCard label={t('leaderboard.your_rank')} value={meRow ? `#${meRow.rank}` : '—'} />
+          <StatCard label={t('leaderboard.your_xp')} value={meRow ? meRow.value : '—'} gold />
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-4 shadow-[var(--shadow-sm)]">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-2">{t('leaderboard.league')}</p>
+            <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold', myTier.badge)}>
+              <myTier.icon size={13} />
+              {t(`leaderboard.tier_${myTier.id}`)}
+            </span>
+          </div>
+        </div>
+
+        {/* Controls: period + search */}
+        <div className="flex flex-col sm:flex-row gap-3 mb-6">
+          <div className="inline-flex rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-1 shrink-0">
+            {PERIODS.map((p) => (
+              <button
+                key={p.id}
+                onClick={() => { setPeriod(p.id); setExpanded(false); }}
+                className={cn(
+                  'px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors',
+                  period === p.id ? 'bg-[var(--color-brand)] text-white' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                )}
               >
-                <div className="text-2xl mb-1">🥈</div>
-                <p className="text-xs font-bold text-[var(--text-primary)] truncate">
-                  {top3[1].full_name ?? t('leaderboard.anonymous')}
-                </p>
-                <p className="text-lg font-extrabold text-slate-500">{top3[1].xp} XP</p>
-              </motion.div>
-            )}
-            {/* 1st */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex-1 bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-300 dark:border-yellow-700 rounded-2xl p-5 text-center"
-            >
-              <div className="text-3xl mb-1">🥇</div>
-              <p className="text-xs font-bold text-[var(--text-primary)] truncate">
-                {top3[0].full_name ?? t('leaderboard.anonymous')}
-              </p>
-              <p className="text-xl font-extrabold text-yellow-600">{top3[0].xp} XP</p>
-            </motion.div>
-            {/* 3rd */}
-            {top3[2] && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="flex-1 bg-amber-50 dark:bg-amber-900/20 border border-[var(--border)] rounded-2xl p-4 text-center"
-              >
-                <div className="text-2xl mb-1">🥉</div>
-                <p className="text-xs font-bold text-[var(--text-primary)] truncate">
-                  {top3[2].full_name ?? t('leaderboard.anonymous')}
-                </p>
-                <p className="text-lg font-extrabold text-amber-600">{top3[2].xp} XP</p>
-              </motion.div>
+                {t(p.key)}
+              </button>
+            ))}
+          </div>
+          <div className="relative flex-1">
+            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={t('leaderboard.search_placeholder') as string}
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-brand)] transition placeholder-[var(--text-muted)]"
+            />
+          </div>
+        </div>
+
+        {profiles.length === 0 ? (
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl px-5 py-12 text-center">
+            <Trophy size={32} className="text-[var(--text-muted)] mx-auto mb-3" />
+            <p className="text-sm text-[var(--text-muted)]">{t('leaderboard.empty')}</p>
+          </div>
+        ) : searching ? (
+          /* Flat search results */
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl overflow-hidden">
+            {matches.length === 0 ? (
+              <p className="px-5 py-10 text-center text-sm text-[var(--text-muted)]">{t('leaderboard.empty')}</p>
+            ) : (
+              <ul className="divide-y divide-[var(--border)]">
+                {matches.map((r) => <RankRow key={r.entry.id} r={r} me={r.entry.id === currentUserId} period={period} t={t} />)}
+              </ul>
             )}
           </div>
+        ) : (
+          <>
+            {/* Podium */}
+            {podium.length >= 1 && (
+              <div className="flex items-end justify-center gap-3 mb-6">
+                {podium[1] && <PodiumCard r={podium[1]} place={2} t={t} />}
+                <PodiumCard r={podium[0]} place={1} t={t} />
+                {podium[2] && <PodiumCard r={podium[2]} place={3} t={t} />}
+              </div>
+            )}
+
+            {/* Rest of the list */}
+            {restAll.length > 0 && (
+              <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl overflow-hidden">
+                <ul className="divide-y divide-[var(--border)]">
+                  {restShown.map((r) => <RankRow key={r.entry.id} r={r} me={r.entry.id === currentUserId} period={period} t={t} />)}
+                </ul>
+                {restAll.length > INITIAL_COUNT && (
+                  <button
+                    onClick={() => setExpanded((v) => !v)}
+                    className="w-full flex items-center justify-center gap-1.5 py-3 text-xs font-semibold text-[var(--color-brand)] border-t border-[var(--border)] hover:bg-[var(--bg-subtle)] transition-colors"
+                  >
+                    {expanded ? t('leaderboard.show_less') : t('leaderboard.show_more')}
+                    <ChevronDown size={14} className={cn('transition-transform', expanded && 'rotate-180')} />
+                  </button>
+                )}
+              </div>
+            )}
+          </>
         )}
 
-        {/* Full list */}
-        <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl overflow-hidden">
-          {authLoading ? (
-            <ul className="divide-y divide-[var(--border)]">
-              {Array.from({ length: Math.min(profiles.length || 5, 8) }).map((_, i) => (
-                <li key={i} className="flex items-center gap-4 px-5 py-3.5 animate-pulse">
-                  <div className="w-6 h-4 bg-[var(--border)] rounded flex-shrink-0" />
-                  <div className="w-8 h-8 rounded-xl bg-[var(--border)] flex-shrink-0" />
-                  <div className="flex-1 space-y-1.5">
-                    <div className="h-3.5 bg-[var(--border)] rounded w-32" />
-                    <div className="h-2.5 bg-[var(--border)] rounded w-20" />
-                  </div>
-                  <div className="w-12 h-4 bg-[var(--border)] rounded flex-shrink-0" />
-                </li>
-              ))}
-            </ul>
-          ) : profiles.length === 0 ? (
-            <div className="px-5 py-12 text-center">
-              <Trophy size={32} className="text-[var(--text-muted)] mx-auto mb-3" />
-              <p className="text-sm text-[var(--text-muted)]">{t('leaderboard.empty')}</p>
+        {/* Sticky "your rank" bar */}
+        {meRow && (
+          <div className="sticky bottom-20 md:bottom-6 mt-4 z-30">
+            <div className="flex items-center gap-3 rounded-2xl border border-[var(--color-brand)] bg-[var(--bg-card)] px-4 py-3 shadow-[var(--shadow-lg)]">
+              <span className="text-sm font-bold w-7 text-center text-[var(--color-brand)] shrink-0">#{meRow.rank}</span>
+              <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center text-white text-xs font-bold shrink-0', tierFor(meRow.entry.xp).avatar)}>
+                {initial(meRow.entry.full_name)}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-[var(--text-primary)] truncate">
+                  {meRow.entry.full_name ?? t('leaderboard.anonymous')}
+                  <span className="ml-2 text-[10px] bg-[var(--color-brand-soft)] text-[var(--color-brand)] font-bold px-1.5 py-0.5 rounded-full">{t('leaderboard.you')}</span>
+                </p>
+                <p className="text-[11px] text-[var(--text-muted)]">{t(`leaderboard.tier_${tierFor(meRow.entry.xp).id}`)}</p>
+              </div>
+              <span className="flex items-center gap-1 font-extrabold text-sm text-[var(--color-gold)] shrink-0">
+                <Zap size={14} />{meRow.value}
+              </span>
             </div>
-          ) : (
-            <ul className="divide-y divide-[var(--border)]">
-              {profiles.map((entry, i) => {
-                const isMe = entry.id === currentUserId;
-                return (
-                  <motion.li
-                    key={entry.id}
-                    initial={{ opacity: 0, x: -12 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: Math.min(i * 0.03, 0.5) }}
-                    className={cn(
-                      'flex items-center gap-4 px-5 py-3.5',
-                      isMe && 'bg-blue-50 dark:bg-blue-900/10'
-                    )}
-                  >
-                    <span className={cn(
-                      'text-sm font-bold w-6 text-center flex-shrink-0',
-                      i === 0 ? 'text-yellow-500' :
-                      i === 1 ? 'text-slate-400' :
-                      i === 2 ? 'text-amber-600' :
-                      'text-[var(--text-muted)]'
-                    )}>
-                      {i + 1}
-                    </span>
-
-                    <div className="w-8 h-8 rounded-xl bg-[var(--color-brand)] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                      {(entry.full_name ?? 'A')[0].toUpperCase()}
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-[var(--text-primary)] truncate">
-                        {entry.full_name ?? t('leaderboard.anonymous')}
-                        {isMe && (
-                          <span className="ml-2 text-[10px] bg-blue-100 dark:bg-blue-900/30 text-[var(--color-brand)] font-semibold px-1.5 py-0.5 rounded-full">
-                            {t('leaderboard.you')}
-                          </span>
-                        )}
-                      </p>
-                      {entry.streak_days > 0 && (
-                        <p className="text-[11px] text-orange-500 flex items-center gap-0.5 mt-0.5">
-                          <Flame size={10} />
-                          {entry.streak_days} {t('leaderboard.day_streak')}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-1 text-[var(--color-green)] font-bold text-sm flex-shrink-0">
-                      <Zap size={14} />
-                      {entry.xp}
-                    </div>
-                  </motion.li>
-                );
-              })}
-            </ul>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </Layout>
   );
 }
 
+function StatCard({ label, value, gold }: { label: string; value: string | number; gold?: boolean }) {
+  return (
+    <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] p-4 shadow-[var(--shadow-sm)]">
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-1.5">{label}</p>
+      <p className={cn('text-2xl font-bold tabular-nums', gold ? 'text-[var(--color-gold)]' : 'text-[var(--text-primary)]')}>{value}</p>
+    </div>
+  );
+}
+
+function Movement({ m }: { m: number | null }) {
+  if (m === null) return null;
+  if (m > 0) return <span className="inline-flex items-center text-[10px] font-bold text-[var(--color-green)]"><ArrowUp size={11} />{m}</span>;
+  if (m < 0) return <span className="inline-flex items-center text-[10px] font-bold text-red-500"><ArrowDown size={11} />{Math.abs(m)}</span>;
+  return <Minus size={11} className="text-[var(--text-muted)]" />;
+}
+
+function PodiumCard({ r, place, t }: { r: Ranked; place: number; t: (k: string) => string }) {
+  const first = place === 1;
+  const accent =
+    place === 1 ? { ring: 'border-yellow-300 dark:border-yellow-700', bg: 'bg-yellow-50 dark:bg-yellow-900/20', text: 'text-yellow-600', medal: 'bg-yellow-400 text-yellow-900' }
+    : place === 2 ? { ring: 'border-slate-300 dark:border-slate-600', bg: 'bg-slate-50 dark:bg-slate-800/40', text: 'text-slate-500', medal: 'bg-slate-300 text-slate-700' }
+    : { ring: 'border-amber-300 dark:border-amber-800', bg: 'bg-amber-50 dark:bg-amber-900/20', text: 'text-amber-600', medal: 'bg-amber-500 text-amber-950' };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: place === 1 ? 0 : place === 2 ? 0.1 : 0.2, type: 'spring', stiffness: 120 }}
+      className={cn(
+        'relative flex-1 rounded-2xl border text-center',
+        accent.bg, accent.ring,
+        first ? 'border-2 p-5 -mt-2' : 'border p-4'
+      )}
+    >
+      {first && (
+        <div className="absolute -inset-1 -z-10 rounded-2xl bg-yellow-300/30 blur-xl" />
+      )}
+      <div className={cn('mx-auto mb-2 flex items-center justify-center rounded-full', accent.medal, first ? 'w-11 h-11' : 'w-9 h-9')}>
+        {first ? <Crown size={20} /> : <Medal size={16} />}
+      </div>
+      <p className="text-xs font-bold text-[var(--text-primary)] truncate px-1">{r.entry.full_name ?? t('leaderboard.anonymous')}</p>
+      <p className={cn('font-extrabold flex items-center justify-center gap-0.5', accent.text, first ? 'text-xl' : 'text-lg')}>
+        <Zap size={first ? 16 : 14} />{r.value}
+      </p>
+      <p className="text-[10px] text-[var(--text-muted)] mt-0.5">#{r.rank}</p>
+    </motion.div>
+  );
+}
+
+function RankRow({ r, me, period, t }: { r: Ranked; me: boolean; period: Period; t: (k: string) => string }) {
+  const tier = tierFor(r.entry.xp);
+  return (
+    <motion.li
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.25 }}
+      className={cn('flex items-center gap-3 px-4 sm:px-5 py-3', me && 'bg-[var(--color-brand-soft)]')}
+    >
+      <div className="flex items-center gap-1 w-10 shrink-0">
+        <span className="text-sm font-bold text-[var(--text-muted)] w-5 text-right">{r.rank}</span>
+        <Movement m={r.movement} />
+      </div>
+
+      <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center text-white text-xs font-bold shrink-0', tier.avatar)}>
+        {initial(r.entry.full_name)}
+      </div>
+
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-[var(--text-primary)] truncate">
+          {r.entry.full_name ?? t('leaderboard.anonymous')}
+          {me && <span className="ml-2 text-[10px] bg-[var(--color-brand)] text-white font-bold px-1.5 py-0.5 rounded-full">{t('leaderboard.you')}</span>}
+        </p>
+        <div className="flex items-center gap-3 mt-0.5 text-[11px] text-[var(--text-muted)]">
+          {r.entry.streak_days > 0 && (
+            <span className="flex items-center gap-0.5 text-orange-500"><Flame size={10} />{r.entry.streak_days}</span>
+          )}
+          <span className="flex items-center gap-0.5"><BookOpenCheck size={10} />{r.entry.lessons_completed} {t('leaderboard.lessons')}</span>
+        </div>
+      </div>
+
+      <span className="flex items-center gap-1 font-bold text-sm text-[var(--color-gold)] shrink-0">
+        <Zap size={14} />{period === 'all' ? r.entry.xp : r.value}
+      </span>
+    </motion.li>
+  );
+}
+
 export const getServerSideProps: GetServerSideProps = async ({ locale }) => {
-  const { data: profiles } = await supabase
+  const { data } = await supabase
     .from('profiles')
-    .select('id, full_name, xp, streak_days')
+    .select('*')
     .order('xp', { ascending: false })
     .limit(50);
 
+  const profiles: Entry[] = (data ?? []).map((p: Record<string, unknown>) => ({
+    id: p.id as string,
+    full_name: (p.full_name as string) ?? null,
+    xp: (p.xp as number) ?? 0,
+    streak_days: (p.streak_days as number) ?? 0,
+    lessons_completed: (p.lessons_completed as number) ?? 0,
+    weekly_xp: (p.weekly_xp as number) ?? null,
+    monthly_xp: (p.monthly_xp as number) ?? null,
+    previous_rank: (p.previous_rank as number) ?? null,
+  }));
+
   return {
     props: {
-      profiles: profiles ?? [],
+      profiles,
       ...(await serverSideTranslations(locale ?? 'am', ['common'])),
     },
   };
