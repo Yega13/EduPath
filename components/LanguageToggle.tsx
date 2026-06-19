@@ -2,9 +2,9 @@ import { useRouter } from 'next/router';
 import { useState, useRef, useEffect } from 'react';
 
 const LANGS = [
-  { code: 'am', flag: '🇦🇲', label: 'Հայ' },
-  { code: 'en', flag: '🇺🇸', label: 'EN' },
-  { code: 'ru', flag: '🇷🇺', label: 'RU' },
+  { code: 'am', flagSrc: 'https://flagcdn.com/w40/am.png', label: 'Հայ' },
+  { code: 'en', flagSrc: 'https://flagcdn.com/w40/us.png', label: 'EN' },
+  { code: 'ru', flagSrc: 'https://flagcdn.com/w40/ru.png', label: 'RU' },
 ];
 
 export default function LanguageToggle() {
@@ -35,12 +35,13 @@ export default function LanguageToggle() {
         aria-label="Switch language"
         className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border)] transition-colors"
       >
-        <span>{current.flag}</span>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={current.flagSrc} alt={current.code} width={20} height={14} className="rounded-sm object-cover" style={{ width: 20, height: 14 }} />
         <span>{current.label}</span>
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-1 w-32 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl shadow-[var(--shadow-lg)] overflow-hidden z-50">
+        <div className="absolute right-0 top-full mt-1 w-36 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl shadow-[var(--shadow-lg)] overflow-hidden z-50">
           {LANGS.map((l) => (
             <button
               key={l.code}
@@ -51,7 +52,8 @@ export default function LanguageToggle() {
                   : 'text-[var(--text-secondary)] hover:bg-[var(--border)]'
               }`}
             >
-              <span>{l.flag}</span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={l.flagSrc} alt={l.code} width={22} height={15} className="rounded-sm object-cover flex-shrink-0" style={{ width: 22, height: 15 }} />
               <span>{l.label}</span>
             </button>
           ))}
