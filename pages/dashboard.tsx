@@ -22,6 +22,7 @@ import {
   Briefcase,
   Palette,
   GraduationCap,
+  Sparkles,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Layout from '@/components/Layout';
@@ -55,6 +56,7 @@ const QUICK_SUBJECTS: { key: string; Icon: typeof Zap; iconBg: string; iconColor
   { key: 'home.subj_business', Icon: Briefcase, iconBg: 'bg-amber-50 dark:bg-amber-900/20', iconColor: 'text-amber-500' },
   { key: 'home.subj_design', Icon: Palette, iconBg: 'bg-rose-50 dark:bg-rose-900/20', iconColor: 'text-rose-500' },
   { key: 'home.subj_exams', Icon: GraduationCap, iconBg: 'bg-teal-50 dark:bg-teal-900/20', iconColor: 'text-teal-500' },
+  { key: 'home.subj_other', Icon: Sparkles, iconBg: 'bg-slate-100 dark:bg-slate-800', iconColor: 'text-slate-500 dark:text-slate-400' },
 ];
 
 function pct(current: number, total: number): number {
@@ -146,6 +148,10 @@ export default function Dashboard() {
 
   const featured = chats[0];
   const rest = chats.slice(1);
+  // A learning path always has lessons; if a chat is missing its count
+  // (legacy/discovery state) fall back to the standard 5-lesson plan so the
+  // UI never shows "of 0".
+  const lessonTotal = (c: Chat) => (c.total_lessons && c.total_lessons > 0 ? c.total_lessons : 5);
 
   return (
     <Layout>
@@ -202,13 +208,6 @@ export default function Dashboard() {
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Continue learning */}
           <div className="lg:col-span-2">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-lg font-bold text-[var(--text-primary)]">{t('dashboard.continue_title')}</h2>
-                <p className="text-sm text-[var(--text-secondary)]">{t('dashboard.continue_subtitle')}</p>
-              </div>
-            </div>
-
             {chats.length === 0 ? (
               <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl px-6 py-12 text-center shadow-[var(--shadow-sm)]">
                 <span className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[var(--color-brand-soft)] text-[var(--color-brand)] mb-4">
@@ -244,17 +243,17 @@ export default function Dashboard() {
                         <span className="text-xs font-medium text-[var(--text-secondary)]">
                           {t('dashboard.lesson_of', {
                             current: featured.current_lesson_index + 1,
-                            total: featured.total_lessons,
+                            total: lessonTotal(featured),
                           })}
                         </span>
                         <span className="text-xs font-bold text-[var(--color-brand)]">
-                          {pct(featured.current_lesson_index, featured.total_lessons)}%
+                          {pct(featured.current_lesson_index, lessonTotal(featured))}%
                         </span>
                       </div>
                       <div className="h-2 rounded-full bg-[var(--bg-subtle)] overflow-hidden">
                         <div
                           className="h-full rounded-full bg-[var(--color-brand)] transition-all"
-                          style={{ width: `${pct(featured.current_lesson_index, featured.total_lessons)}%` }}
+                          style={{ width: `${pct(featured.current_lesson_index, lessonTotal(featured))}%` }}
                         />
                       </div>
                     </div>
@@ -305,17 +304,17 @@ export default function Dashboard() {
                           <span className="text-[11px] text-[var(--text-muted)]">
                             {t('dashboard.lesson_of', {
                               current: chat.current_lesson_index + 1,
-                              total: chat.total_lessons,
+                              total: lessonTotal(chat),
                             })}
                           </span>
                           <span className="text-[11px] font-bold text-[var(--color-brand)]">
-                            {pct(chat.current_lesson_index, chat.total_lessons)}%
+                            {pct(chat.current_lesson_index, lessonTotal(chat))}%
                           </span>
                         </div>
                         <div className="h-1.5 rounded-full bg-[var(--bg-subtle)] overflow-hidden">
                           <div
                             className="h-full rounded-full bg-[var(--color-brand)]"
-                            style={{ width: `${pct(chat.current_lesson_index, chat.total_lessons)}%` }}
+                            style={{ width: `${pct(chat.current_lesson_index, lessonTotal(chat))}%` }}
                           />
                         </div>
                       </motion.div>
