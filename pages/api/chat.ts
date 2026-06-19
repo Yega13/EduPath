@@ -22,21 +22,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const admin = getAdminClient();
 
-  let langInstruction = '';
-
   // Rate limiting — graceful if columns not yet migrated
   try {
     const { data: profile } = await admin
       .from('profiles')
-      .select('daily_messages_used, last_message_date, preferred_language')
+      .select('daily_messages_used, last_message_date')
       .eq('id', user.id)
       .single();
-
-    if (profile) {
-      const langCode = (profile as { preferred_language?: string }).preferred_language ?? 'en';
-      const langName = langCode === 'am' ? 'Armenian' : langCode === 'ru' ? 'Russian' : 'English';
-      langInstruction = `\n\nAlways respond in ${langName}. No exceptions.`;
-    }
 
     if (profile && 'daily_messages_used' in profile) {
       const today = new Date().toISOString().split('T')[0];
@@ -86,7 +78,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ?.find((l) => l.lesson_index === chat.current_lesson_index);
 
   const systemPrompt = isDiscovering
-    ? `You are May — a personal teacher built by Himq.
+    ? `You are May — a personal teacher built by EduPath.
 
 Student goal: "${chat.title}"
 
@@ -105,8 +97,8 @@ QUESTION FORMAT RULES — follow exactly:
 
 When you have enough to build a truly personalized plan, say EXACTLY:
 "I have everything I need."
-Then: "Your personalized plan is being built now — one moment."${langInstruction}`
-    : `You are May — an expert personal teacher built by Himq. Your name is May (short for May-1). If anyone asks your name, say "I'm May." Never call yourself "Himq" or any other name.
+Then: "Your personalized plan is being built now — one moment."`
+    : `You are May — an expert personal teacher built by EduPath. Your name is May (short for May-1). If anyone asks your name, say "I'm May." Never call yourself "EduPath AI" or any other name.
 
 Topic: ${chat.title}
 Current lesson (${chat.current_lesson_index + 1}/${chat.total_lessons}): "${currentLesson?.title ?? ''}" — ${currentLesson?.description ?? ''}
@@ -120,7 +112,7 @@ You know this student well from your discovery conversation — make every respo
 • If they seem lost, go one level simpler — never push through confusion.
 • Stay strictly on topic: "${chat.title}"
 • When the student clearly understands the current lesson: "You've got this — click Mark Complete to unlock the next lesson."
-• Never restart the discovery phase.${langInstruction}`;
+• Never restart the discovery phase.`;
 
   const aiMessages = [
     ...(history ?? []).map((m: { role: string; content: string }) => ({

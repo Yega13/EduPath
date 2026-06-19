@@ -45,7 +45,7 @@ export default function Navbar() {
     <header className="hidden md:block sticky top-0 z-50 bg-[var(--bg-secondary)] border-b border-[var(--border)]">
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/" className="font-bold text-xl text-[var(--color-brand)]">
-          Himq
+          EduPath
         </Link>
 
         <nav className="flex items-center gap-1">
@@ -54,7 +54,7 @@ export default function Navbar() {
               key={href}
               href={href}
               className={cn(
-                'px-4 py-2 rounded-lg text-[15px] font-medium transition-colors',
+                'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
                 pathname === href || pathname.startsWith(href + '/')
                   ? 'bg-[var(--color-brand)] text-white'
                   : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border)]'
@@ -69,7 +69,7 @@ export default function Navbar() {
           <div className="relative" ref={leaderboardRef}>
             <button
               onClick={() => setLeaderboardOpen((v) => !v)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[15px] font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border)] transition-colors"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border)] transition-colors"
             >
               <Trophy size={16} />
               {t('nav.leaderboard')}
@@ -79,10 +79,10 @@ export default function Navbar() {
             {leaderboardOpen && (
               <div className="absolute right-0 top-full mt-2 w-72 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl shadow-[var(--shadow-lg)] animate-fade-in overflow-hidden">
                 <div className="p-3 border-b border-[var(--border)]">
-                  <p className="text-sm font-semibold text-[var(--text-primary)]">{t('nav.top_learners')}</p>
+                  <p className="text-sm font-semibold text-[var(--text-primary)]">Top Learners</p>
                 </div>
                 <div className="p-2 max-h-80 overflow-y-auto">
-                  <p className="text-xs text-[var(--text-muted)] text-center py-4">{t('nav.coming_soon')}</p>
+                  <p className="text-xs text-[var(--text-muted)] text-center py-4">Coming soon</p>
                 </div>
                 <div className="p-2 border-t border-[var(--border)]">
                   <Link
@@ -90,7 +90,7 @@ export default function Navbar() {
                     onClick={() => setLeaderboardOpen(false)}
                     className="block text-center text-xs text-[var(--color-brand)] hover:underline py-1"
                   >
-                    {t('nav.view_leaderboard')}
+                    View full leaderboard →
                   </Link>
                 </div>
               </div>
