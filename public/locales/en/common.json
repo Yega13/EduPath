@@ -134,6 +134,26 @@
     "quick_start_title": "Start a new path",
     "quick_start_subtitle": "Pick a topic and the AI will build your plan."
   },
+  "learn": {
+    "title": "What do you want to master?",
+    "subtitle": "Pick a topic or describe your goal — your AI teacher builds a clear, step-by-step plan.",
+    "paths_title": "Your paths",
+    "new_path": "New path",
+    "no_paths": "No paths yet",
+    "no_paths_desc": "Create your first learning path and it will appear here.",
+    "category_label": "Choose a category",
+    "goal_label": "Describe what you want to learn",
+    "skill_label": "Your level",
+    "suggestions_label": "Try one of these",
+    "popular_label": "Popular right now",
+    "build": "Build my plan",
+    "building": "Building your plan…",
+    "how_title": "How it works",
+    "delete": "Delete",
+    "confirm": "Confirm?",
+    "roadmap": "Roadmap",
+    "lesson_short": "Lesson {{current}}/{{total}}"
+  },
   "chat": {
     "new_chat": "New Chat",
     "placeholder": "Type a message...",
