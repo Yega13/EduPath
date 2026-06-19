@@ -15,6 +15,7 @@ export default function Navbar() {
   const [leaderboardOpen, setLeaderboardOpen] = useState(false);
   const [userInitial, setUserInitial] = useState('?');
   const [visible, setVisible] = useState(true);
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const leaderboardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -61,6 +62,12 @@ export default function Navbar() {
     { href: '/about',         label: t('nav.about') },
   ];
 
+  const activeLink = NAV_LINKS.find(
+    (l) => pathname === l.href || pathname.startsWith(l.href + '/')
+  );
+  // The pill follows hover; when not hovering it rests on the active link
+  const highlightHref = hoveredItem ?? activeLink?.href ?? null;
+
   return (
     <motion.header
       initial={{ y: -80, opacity: 0 }}
@@ -75,21 +82,38 @@ export default function Navbar() {
             Himq
           </Link>
 
-          <nav className="flex items-center gap-0.5">
-            {NAV_LINKS.map(({ href, label }) => (
-              <Link
-                key={href}
-                href={href}
-                className={cn(
-                  'px-4 py-2 rounded-lg text-[15px] font-medium transition-colors',
-                  pathname === href || pathname.startsWith(href + '/')
-                    ? 'bg-[var(--color-brand)] text-white'
-                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border)]'
-                )}
-              >
-                {label}
-              </Link>
-            ))}
+          {/* Nav links with sliding pill */}
+          <nav
+            className="flex items-center"
+            onMouseLeave={() => setHoveredItem(null)}
+          >
+            {NAV_LINKS.map(({ href, label }) => {
+              const isHighlighted = href === highlightHref;
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  onMouseEnter={() => setHoveredItem(href)}
+                  className="relative px-4 py-2 text-[15px] font-medium"
+                >
+                  {isHighlighted && (
+                    <motion.div
+                      layoutId="nav-pill"
+                      className="absolute inset-0 rounded-full bg-[var(--color-brand)]"
+                      transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+                    />
+                  )}
+                  <span className={cn(
+                    'relative z-10 transition-colors duration-150',
+                    isHighlighted
+                      ? 'text-white'
+                      : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                  )}>
+                    {label}
+                  </span>
+                </Link>
+              );
+            })}
           </nav>
 
           <div className="flex items-center gap-2">

@@ -264,7 +264,7 @@ export default function AboutPage() {
 
       {/* ── FAQ ───────────────────────────────────────────────── */}
       <section className="max-w-6xl mx-auto px-4 py-24">
-        <div className="grid md:grid-cols-2 gap-16 items-start">
+        <div className="grid md:grid-cols-2 gap-8 items-start">
 
           {/* Left: sticky big heading */}
           <motion.div {...fadeUp()} className="md:sticky md:top-28">
