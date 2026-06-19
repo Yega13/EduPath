@@ -449,11 +449,11 @@ function EventPicker({ cats, t }: { cats: string[]; t: TFunc }) {
 /* ─── Hero product-preview card ──────────────────────────────── */
 function PlanPreview({ t }: { t: TFunc }) {
   const lessons = [
-    { key: 'home.plan_lesson_1', state: 'done' as const },
-    { key: 'home.plan_lesson_2', state: 'done' as const },
-    { key: 'home.plan_lesson_3', state: 'current' as const },
-    { key: 'home.plan_lesson_4', state: 'todo' as const },
-    { key: 'home.plan_lesson_5', state: 'todo' as const },
+    { label: 'Variables & data types', state: 'done' as const },
+    { label: 'Functions & logic', state: 'done' as const },
+    { label: 'Lists & loops', state: 'current' as const },
+    { label: 'Working with files', state: 'todo' as const },
+    { label: 'Your first real project', state: 'todo' as const },
   ];
 
   return (
@@ -480,8 +480,8 @@ function PlanPreview({ t }: { t: TFunc }) {
               <Sparkles size={16} />
             </span>
             <div className="leading-tight">
-              <p className="text-[11px] font-medium text-[var(--text-muted)]">{t('home.plan_card_label')}</p>
-              <p className="text-sm font-bold text-[var(--text-primary)]">{t('home.plan_card_goal')}</p>
+              <p className="text-[11px] font-medium text-[var(--text-muted)]">Your learning plan</p>
+              <p className="text-sm font-bold text-[var(--text-primary)]">Python for beginners</p>
             </div>
           </div>
           <span className="text-[11px] font-semibold text-[var(--color-brand)] bg-[var(--color-brand-soft)] px-2.5 py-1 rounded-full">
@@ -493,7 +493,7 @@ function PlanPreview({ t }: { t: TFunc }) {
         <div className="space-y-2.5 mb-5">
           {lessons.map((l, i) => (
             <motion.div
-              key={l.key}
+              key={l.label}
               initial={{ opacity: 0, x: 12 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.4 + i * 0.13, duration: 0.35 }}
@@ -511,11 +511,11 @@ function PlanPreview({ t }: { t: TFunc }) {
                   l.state === 'todo' ? 'text-[var(--text-muted)]' : 'text-[var(--text-primary)]'
                 }`}
               >
-                {t(l.key)}
+                {l.label}
               </span>
               {l.state === 'current' && (
                 <span className="ml-auto text-[10px] font-bold uppercase tracking-wide text-[var(--color-brand)]">
-                  {t('home.plan_current')}
+                  Current
                 </span>
               )}
             </motion.div>
@@ -525,7 +525,7 @@ function PlanPreview({ t }: { t: TFunc }) {
         {/* progress */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.1 }}>
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs font-semibold text-[var(--text-secondary)]">{t('home.plan_progress')}</span>
+            <span className="text-xs font-semibold text-[var(--text-secondary)]">Progress</span>
             <span className="text-xs font-bold text-[var(--color-brand)]">40%</span>
           </div>
           <div className="h-2 rounded-full bg-[var(--bg-subtle)] overflow-hidden">
