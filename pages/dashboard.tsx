@@ -185,7 +185,8 @@ export default function Dashboard() {
           ) : (
             <ul className="divide-y divide-[var(--border)]">
               {chats.map((chat) => {
-                const pct = Math.round((chat.current_lesson_index / chat.total_lessons) * 100);
+                const discovering = chat.total_lessons === 0;
+                const pct = discovering ? 0 : Math.round((chat.current_lesson_index / chat.total_lessons) * 100);
                 return (
                   <li key={chat.id} className="flex items-center">
                     <Link
@@ -195,18 +196,24 @@ export default function Dashboard() {
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-[var(--text-primary)] truncate">{chat.title}</p>
                         <div className="flex items-center gap-2 mt-1.5">
-                          <div className="flex-1 max-w-[120px] h-1.5 rounded-full bg-[var(--border)]">
-                            <div
-                              className="h-full rounded-full bg-[var(--color-brand)] transition-all"
-                              style={{ width: `${pct}%` }}
-                            />
-                          </div>
-                          <span className="text-[11px] text-[var(--text-muted)]">
-                            {t('dashboard.lesson_of', {
-                              current: chat.current_lesson_index + 1,
-                              total: chat.total_lessons,
-                            })}
-                          </span>
+                          {discovering ? (
+                            <span className="text-[11px] text-[var(--color-brand)] font-medium">Discovering…</span>
+                          ) : (
+                            <>
+                              <div className="flex-1 max-w-[120px] h-1.5 rounded-full bg-[var(--border)]">
+                                <div
+                                  className="h-full rounded-full bg-[var(--color-brand)] transition-all"
+                                  style={{ width: `${pct}%` }}
+                                />
+                              </div>
+                              <span className="text-[11px] text-[var(--text-muted)]">
+                                {t('dashboard.lesson_of', {
+                                  current: chat.current_lesson_index + 1,
+                                  total: chat.total_lessons,
+                                })}
+                              </span>
+                            </>
+                          )}
                         </div>
                       </div>
                       <ArrowRight

@@ -54,7 +54,7 @@ export default function Navbar() {
               key={href}
               href={href}
               className={cn(
-                'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+                'px-4 py-2 rounded-lg text-[15px] font-medium transition-colors',
                 pathname === href || pathname.startsWith(href + '/')
                   ? 'bg-[var(--color-brand)] text-white'
                   : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border)]'
@@ -69,7 +69,7 @@ export default function Navbar() {
           <div className="relative" ref={leaderboardRef}>
             <button
               onClick={() => setLeaderboardOpen((v) => !v)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border)] transition-colors"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[15px] font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border)] transition-colors"
             >
               <Trophy size={16} />
               {t('nav.leaderboard')}
