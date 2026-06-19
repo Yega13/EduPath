@@ -148,10 +148,6 @@ export default function Dashboard() {
 
   const featured = chats[0];
   const rest = chats.slice(1);
-  // A learning path always has lessons; if a chat is missing its count
-  // (legacy/discovery state) fall back to the standard 5-lesson plan so the
-  // UI never shows "of 0".
-  const lessonTotal = (c: Chat) => (c.total_lessons && c.total_lessons > 0 ? c.total_lessons : 5);
 
   return (
     <Layout>
