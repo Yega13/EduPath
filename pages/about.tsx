@@ -9,11 +9,13 @@ import {
 } from 'lucide-react';
 import Layout from '@/components/Layout';
 
+const EASE = 'easeOut' as const;
+
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 28 },
   whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true, margin: '-60px' },
-  transition: { duration: 0.55, delay, ease: 'easeOut' },
+  viewport: { once: true, margin: '-60px' as const },
+  transition: { duration: 0.55, delay, ease: EASE },
 });
 
 const WHAT_WE_DO = [
@@ -60,14 +62,14 @@ export default function AboutPage() {
 
         <div className="max-w-3xl mx-auto px-4 pt-20 pb-16 text-center">
           <motion.span
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, ease: EASE }}
             className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[var(--color-brand-soft)] text-[var(--color-brand)] mb-6"
           >
             <Sparkles size={12} /> About us
           </motion.span>
 
           <motion.h1
-            initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, delay: 0.05, ease: 'easeOut' }}
+            initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, delay: 0.05, ease: EASE }}
             className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-[var(--text-primary)] leading-[1.07] mb-6"
           >
             We&apos;re three students<br />
@@ -75,7 +77,7 @@ export default function AboutPage() {
           </motion.h1>
 
           <motion.p
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, delay: 0.12, ease: 'easeOut' }}
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, delay: 0.12, ease: EASE }}
             className="text-lg text-[var(--text-secondary)] leading-relaxed"
           >
             Tired of watching talented classmates miss scholarships they never heard about.
@@ -108,7 +110,7 @@ export default function AboutPage() {
 
           <div className="space-y-5 text-[var(--text-on-deep)]/75 leading-relaxed text-base">
             <motion.p {...fadeUp(0.07)}>
-              We are three students from Armenia — Suren, Hayk, and a third co-founder — who met through a shared frustration: the gap between ambition and opportunity in our country is huge, but it doesn&apos;t have to be.
+              We are three students from Armenia — Suren, Hayk, and Artashes — who met through a shared frustration: the gap between ambition and opportunity in our country is huge, but it doesn&apos;t have to be.
             </motion.p>
             <motion.p {...fadeUp(0.12)}>
               Armenian students are sharp, motivated, and hungry. But the information they need — which scholarship to apply for, how to prepare, where to start learning — is scattered across hundreds of websites, Telegram channels, and word-of-mouth. Most students miss deadlines simply because no one told them in time.
@@ -175,7 +177,7 @@ export default function AboutPage() {
           initial={{ opacity: 0, scale: 0.97 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5, ease: 'easeOut' }}
+          transition={{ duration: 0.5, ease: EASE }}
           className="rounded-3xl bg-gradient-to-br from-[var(--color-brand)] to-[var(--color-brand-hover)] p-12 sm:p-16 text-center text-white relative overflow-hidden"
         >
           <div className="pointer-events-none absolute -top-14 -right-14 w-56 h-56 bg-white/10 rounded-full" />
