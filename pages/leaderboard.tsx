@@ -1,9 +1,9 @@
 import { GetServerSideProps } from 'next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef, type Ref } from 'react';
 import Head from 'next/head';
 import { Zap, Flame, Trophy, Crown, Medal, BookOpenCheck, Search, ArrowUp, ArrowDown, Minus, ChevronDown, Gem, Shield, Award } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'next-i18next';
 import Layout from '@/components/Layout';
 import { supabase, getBrowserClient } from '@/lib/supabase';
@@ -60,6 +60,8 @@ export default function Leaderboard({ profiles }: { profiles: Entry[] }) {
   const [period, setPeriod] = useState<Period>('all');
   const [query, setQuery] = useState('');
   const [expanded, setExpanded] = useState(false);
+  const [meVisible, setMeVisible] = useState(false);
+  const meRowRef = useRef<HTMLLIElement>(null);
 
   useEffect(() => {
     getBrowserClient().auth.getUser().then(({ data: { user } }) => setCurrentUserId(user?.id ?? null));
@@ -95,6 +97,21 @@ export default function Leaderboard({ profiles }: { profiles: Entry[] }) {
   const nextTier = tierIdx > 0 ? TIERS[tierIdx - 1] : null;
   const toNext = nextTier ? Math.max(0, nextTier.min - myXpTotal) : 0;
   const tierPct = nextTier ? Math.min(100, Math.round(((myXpTotal - myTier.min) / (nextTier.min - myTier.min)) * 100)) : 100;
+
+  // Hide the sticky "your rank" helper while the user's own row is on screen.
+  useEffect(() => {
+    const el = meRowRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') {
+      setMeVisible(false);
+      return;
+    }
+    const obs = new IntersectionObserver(
+      (entries) => setMeVisible(entries[0]?.isIntersecting ?? false),
+      { threshold: 0.6 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [currentUserId, expanded, searching, q, period, ranked]);
 
   return (
     <Layout>
@@ -178,7 +195,7 @@ export default function Leaderboard({ profiles }: { profiles: Entry[] }) {
               <p className="px-5 py-10 text-center text-sm text-[var(--text-muted)]">{t('leaderboard.empty')}</p>
             ) : (
               <ul className="divide-y divide-[var(--border)]">
-                {matches.map((r) => <RankRow key={r.entry.id} r={r} me={r.entry.id === currentUserId} period={period} t={t} />)}
+                {matches.map((r) => <RankRow key={r.entry.id} r={r} me={r.entry.id === currentUserId} period={period} t={t} innerRef={r.entry.id === currentUserId ? meRowRef : undefined} />)}
               </ul>
             )}
           </div>
@@ -197,7 +214,7 @@ export default function Leaderboard({ profiles }: { profiles: Entry[] }) {
             {ranked.length > 0 && (
               <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl overflow-hidden">
                 <ul className="divide-y divide-[var(--border)]">
-                  {listShown.map((r) => <RankRow key={r.entry.id} r={r} me={r.entry.id === currentUserId} period={period} t={t} />)}
+                  {listShown.map((r) => <RankRow key={r.entry.id} r={r} me={r.entry.id === currentUserId} period={period} t={t} innerRef={r.entry.id === currentUserId ? meRowRef : undefined} />)}
                 </ul>
                 {ranked.length > INITIAL_COUNT && (
                   <button
@@ -213,9 +230,16 @@ export default function Leaderboard({ profiles }: { profiles: Entry[] }) {
           </>
         )}
 
-        {/* Sticky "your rank" bar */}
-        {meRow && (
-          <div className="sticky bottom-20 md:bottom-6 mt-4 z-30">
+        {/* Sticky "your rank" bar — only while your row is off-screen */}
+        <AnimatePresence>
+        {meRow && !meVisible && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.2 }}
+            className="sticky bottom-20 md:bottom-6 mt-4 z-30"
+          >
             <div className="flex items-center gap-3 rounded-2xl border border-[var(--color-brand)] bg-[var(--bg-card)] px-4 py-3 shadow-[var(--shadow-lg)]">
               <span className="text-sm font-bold w-7 text-center text-[var(--color-brand)] shrink-0">#{meRow.rank}</span>
               <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center text-white text-xs font-bold shrink-0', tierFor(meRow.entry.xp).avatar)}>
@@ -232,8 +256,9 @@ export default function Leaderboard({ profiles }: { profiles: Entry[] }) {
                 <Zap size={14} />{meRow.value}
               </span>
             </div>
-          </div>
+          </motion.div>
         )}
+        </AnimatePresence>
       </div>
     </Layout>
   );
@@ -288,10 +313,11 @@ function PodiumCard({ r, place, t }: { r: Ranked; place: number; t: (k: string) 
   );
 }
 
-function RankRow({ r, me, period, t }: { r: Ranked; me: boolean; period: Period; t: (k: string) => string }) {
+function RankRow({ r, me, period, t, innerRef }: { r: Ranked; me: boolean; period: Period; t: (k: string) => string; innerRef?: Ref<HTMLLIElement> }) {
   const tier = tierFor(r.entry.xp);
   return (
     <motion.li
+      ref={innerRef}
       initial={{ opacity: 0, x: -10 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.25 }}
