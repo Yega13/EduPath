@@ -137,14 +137,18 @@ export default function Home() {
               </motion.div>
             </motion.div>
 
-            {/* Product preview card */}
+            {/* Product preview card on a premium dark frame */}
             <motion.div
               initial={{ opacity: 0, scale: 0.96, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.15 }}
               className="relative mx-auto w-full max-w-md"
             >
-              <PlanPreview t={t} />
+              <div className="pointer-events-none absolute -inset-5 rounded-[2.5rem] bg-gradient-to-br from-[var(--color-brand)]/30 to-violet-500/20 blur-2xl -z-10" />
+              <div className="relative rounded-[1.85rem] bg-gradient-to-br from-[#0a1733] via-[#11224c] to-[#1d3262] p-4 sm:p-5 shadow-2xl ring-1 ring-white/10">
+                <div className="pointer-events-none absolute top-0 right-0 w-40 h-40 rounded-full bg-[var(--color-gold)]/10 blur-2xl" />
+                <PlanPreview t={t} />
+              </div>
             </motion.div>
           </div>
 

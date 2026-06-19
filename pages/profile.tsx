@@ -4,12 +4,14 @@ import { useTranslation } from 'next-i18next';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
-import { Zap, Flame, Edit2, Check, X, LogOut } from 'lucide-react';
+import Link from 'next/link';
+import { Zap, Flame, Edit2, Check, X, LogOut, Bookmark, Calendar, ExternalLink, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Layout from '@/components/Layout';
 import { useUser } from '@/lib/useUser';
 import { getBrowserClient } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
+import { getSavedEvents, removeSavedEvent, type SavedEvent } from '@/lib/savedEvents';
 
 interface Profile {
   full_name: string | null;
@@ -41,6 +43,19 @@ export default function ProfilePage() {
   const [goal, setGoal]             = useState('');
   const [skillLevel, setSkillLevel] = useState('beginner');
   const [prefLang, setPrefLang]     = useState('am');
+  const [savedEvents, setSavedEvents] = useState<SavedEvent[]>([]);
+
+  useEffect(() => {
+    const refresh = () => setSavedEvents(getSavedEvents());
+    refresh();
+    window.addEventListener('ep-saved-events-changed', refresh);
+    return () => window.removeEventListener('ep-saved-events-changed', refresh);
+  }, []);
+
+  const handleRemoveSaved = (id: string) => {
+    removeSavedEvent(id);
+    setSavedEvents(getSavedEvents());
+  };
 
   useEffect(() => {
     if (!userLoading && !user) router.replace('/auth');
@@ -279,6 +294,67 @@ export default function ProfilePage() {
                   </div>
                 </div>
               </>
+            )}
+          </div>
+
+          {/* Saved opportunities */}
+          <div className="mt-6">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="flex items-center gap-2 text-sm font-bold text-[var(--text-primary)]">
+                <Bookmark size={15} className="text-[var(--color-brand)]" />
+                {t('profile.saved_title')}
+              </h2>
+              {savedEvents.length > 0 && (
+                <Link href="/opportunities" className="text-xs font-medium text-[var(--color-brand)] hover:underline">
+                  {t('profile.saved_browse')}
+                </Link>
+              )}
+            </div>
+
+            {savedEvents.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-[var(--border-strong)] px-4 py-8 text-center">
+                <p className="text-sm text-[var(--text-muted)] mb-3">{t('profile.saved_empty')}</p>
+                <Link href="/opportunities" className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--color-brand)] hover:underline">
+                  {t('profile.saved_browse')} →
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {savedEvents.map((ev) => {
+                  const d = ev.deadline ? Math.ceil((new Date(ev.deadline).getTime() - Date.now()) / 86400000) : null;
+                  return (
+                    <div key={ev.id} className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] px-4 py-3">
+                      <Link href={`/opportunities/${ev.id}`} className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-[var(--text-primary)] truncate hover:text-[var(--color-brand)] transition-colors">{ev.title}</p>
+                        <p className="text-[11px] text-[var(--text-muted)] flex items-center gap-2 mt-0.5">
+                          <span className="capitalize">{ev.event_type}</span>
+                          {d !== null && d >= 0 && (
+                            <span className="flex items-center gap-1"><Calendar size={10} />{d} {t('opportunities.days_left')}</span>
+                          )}
+                        </p>
+                      </Link>
+                      {ev.link && (
+                        <a
+                          href={ev.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="shrink-0 text-[var(--text-muted)] hover:text-[var(--color-brand)] transition-colors"
+                          title={t('opportunities.apply') as string}
+                        >
+                          <ExternalLink size={15} />
+                        </a>
+                      )}
+                      <button
+                        onClick={() => handleRemoveSaved(ev.id)}
+                        className="shrink-0 text-[var(--text-muted)] hover:text-red-500 transition-colors"
+                        title={t('common.cancel') as string}
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </div>
 

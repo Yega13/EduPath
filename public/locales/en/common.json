@@ -175,6 +175,7 @@
   },
   "opportunities": {
     "title": "Opportunities",
+    "subtitle": "Real opportunities for students and young professionals in Armenia.",
     "filter_all": "All",
     "filter_competition": "Competition",
     "filter_scholarship": "Scholarship",
@@ -182,11 +183,28 @@
     "filter_grant": "Grant",
     "deadline": "Deadline",
     "prepare_me": "Prepare Me",
+    "prepare_with_ai": "Prepare with AI",
+    "prepare_building": "Building your prep plan…",
     "apply": "Apply",
     "no_events": "No opportunities found",
     "days_left": "days left",
     "online": "Online",
-    "free": "Free"
+    "free": "Free",
+    "search_placeholder": "Search by title or organizer…",
+    "sort_label": "Sort",
+    "sort_deadline": "Deadline soon",
+    "sort_popular": "Most popular",
+    "sort_newest": "Newest",
+    "filter_online": "Online only",
+    "filter_closing": "Closing soon",
+    "save": "Save",
+    "saved": "Saved",
+    "about": "About this opportunity",
+    "details": "Details",
+    "location": "Location",
+    "ended": "Ended",
+    "sign_in_ai": "Sign in to use AI preparation.",
+    "results": "{{count}} results"
   },
   "profile": {
     "title": "My Profile",
@@ -200,7 +218,10 @@
     "xp": "XP",
     "streak": "Day Streak",
     "member_since": "Member since",
-    "no_goal": "No goal set yet"
+    "no_goal": "No goal set yet",
+    "saved_title": "Saved opportunities",
+    "saved_empty": "No saved opportunities yet.",
+    "saved_browse": "Browse opportunities"
   },
   "leaderboard": {
     "title": "Leaderboard",
