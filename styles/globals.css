@@ -37,9 +37,11 @@
   --color-brand: #1f5fe0;
   --color-brand-hover: #1849bf;
   --color-brand-soft: #e8f0fe; /* tinted brand surface */
+  --color-logo: #5490ec;       /* exact blue from the HIMQ logo */
   --color-green: #16a34a;
   --color-gold: #e0922e;       /* achievement / XP accent — used sparingly */
   --color-yellow: #eab308;
+  --text-nav: #2f3d52;         /* deep charcoal for nav links */
 
   --shadow-sm: 0 1px 2px 0 rgb(15 26 51 / 0.06);
   --shadow-md: 0 4px 12px -2px rgb(15 26 51 / 0.10), 0 2px 4px -2px rgb(15 26 51 / 0.06);
@@ -62,9 +64,11 @@
   --color-brand: #4d93f5;
   --color-brand-hover: #6fa9f8;
   --color-brand-soft: #15233d;
+  --color-logo: #5490ec;       /* exact blue from the HIMQ logo */
   --color-green: #22c55e;
   --color-gold: #eab308;
   --color-yellow: #ca8a04;
+  --text-nav: #c8d2e6;         /* light charcoal for nav links (dark mode) */
 
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
   --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.45), 0 2px 4px -2px rgb(0 0 0 / 0.3);
