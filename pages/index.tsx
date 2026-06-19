@@ -147,7 +147,7 @@ export default function Home() {
               <div className="pointer-events-none absolute -inset-5 rounded-[2.5rem] bg-gradient-to-br from-[var(--color-brand)]/30 to-violet-500/20 blur-2xl -z-10" />
               <div className="relative rounded-[1.85rem] bg-gradient-to-br from-[#0a1733] via-[#11224c] to-[#1d3262] p-4 sm:p-5 shadow-2xl ring-1 ring-white/10">
                 <div className="pointer-events-none absolute top-0 right-0 w-40 h-40 rounded-full bg-[var(--color-gold)]/10 blur-2xl" />
-                <PlanPreview t={t} />
+                <PlanPreview />
               </div>
             </motion.div>
           </div>
@@ -447,7 +447,7 @@ function EventPicker({ cats, t }: { cats: string[]; t: TFunc }) {
 }
 
 /* ─── Hero product-preview card ──────────────────────────────── */
-function PlanPreview({ t }: { t: TFunc }) {
+function PlanPreview() {
   const lessons = [
     { label: 'Variables & data types', state: 'done' as const },
     { label: 'Functions & logic', state: 'done' as const },
