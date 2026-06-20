@@ -62,6 +62,7 @@ export default function Leaderboard({ profiles }: { profiles: Entry[] }) {
   const [expanded, setExpanded] = useState(false);
   const [meVisible, setMeVisible] = useState(false);
   const meRowRef = useRef<HTMLLIElement>(null);
+  const mePodiumRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     getBrowserClient().auth.getUser().then(({ data: { user } }) => setCurrentUserId(user?.id ?? null));
@@ -98,18 +99,23 @@ export default function Leaderboard({ profiles }: { profiles: Entry[] }) {
   const toNext = nextTier ? Math.max(0, nextTier.min - myXpTotal) : 0;
   const tierPct = nextTier ? Math.min(100, Math.round(((myXpTotal - myTier.min) / (nextTier.min - myTier.min)) * 100)) : 100;
 
-  // Hide the sticky "your rank" helper while the user's own row is on screen.
+  // Hide the sticky "your rank" helper while the user is already visible on
+  // screen — either via their list row OR their podium card (top 3).
   useEffect(() => {
-    const el = meRowRef.current;
-    if (!el || typeof IntersectionObserver === 'undefined') {
+    const els = [meRowRef.current, mePodiumRef.current].filter(Boolean) as Element[];
+    if (els.length === 0 || typeof IntersectionObserver === 'undefined') {
       setMeVisible(false);
       return;
     }
+    const state = new Map<Element, boolean>();
     const obs = new IntersectionObserver(
-      (entries) => setMeVisible(entries[0]?.isIntersecting ?? false),
-      { threshold: 0.6 }
+      (entries) => {
+        entries.forEach((e) => state.set(e.target, e.isIntersecting));
+        setMeVisible(Array.from(state.values()).some(Boolean));
+      },
+      { threshold: 0.5 }
     );
-    obs.observe(el);
+    els.forEach((el) => obs.observe(el));
     return () => obs.disconnect();
   }, [currentUserId, expanded, searching, q, period, ranked]);
 
@@ -203,10 +209,10 @@ export default function Leaderboard({ profiles }: { profiles: Entry[] }) {
           <>
             {/* Podium */}
             {podium.length >= 1 && (
-              <div className="flex items-end justify-center gap-3 mb-6">
-                {podium[1] && <PodiumCard r={podium[1]} place={2} t={t} />}
-                <PodiumCard r={podium[0]} place={1} t={t} />
-                {podium[2] && <PodiumCard r={podium[2]} place={3} t={t} />}
+              <div className="flex items-end justify-center gap-3 mb-6 pt-6">
+                {podium[1] && <PodiumCard r={podium[1]} place={2} t={t} innerRef={podium[1].entry.id === currentUserId ? mePodiumRef : undefined} />}
+                <PodiumCard r={podium[0]} place={1} t={t} innerRef={podium[0].entry.id === currentUserId ? mePodiumRef : undefined} />
+                {podium[2] && <PodiumCard r={podium[2]} place={3} t={t} innerRef={podium[2].entry.id === currentUserId ? mePodiumRef : undefined} />}
               </div>
             )}
 
@@ -280,7 +286,7 @@ function Movement({ m }: { m: number | null }) {
   return <Minus size={11} className="text-[var(--text-muted)]" />;
 }
 
-function PodiumCard({ r, place, t }: { r: Ranked; place: number; t: (k: string) => string }) {
+function PodiumCard({ r, place, t, innerRef }: { r: Ranked; place: number; t: (k: string) => string; innerRef?: Ref<HTMLDivElement> }) {
   const first = place === 1;
   const accent =
     place === 1 ? { ring: 'border-yellow-300 dark:border-yellow-700', bg: 'bg-yellow-50 dark:bg-yellow-900/20', text: 'text-yellow-600', medal: 'bg-yellow-400 text-yellow-900' }
@@ -289,13 +295,14 @@ function PodiumCard({ r, place, t }: { r: Ranked; place: number; t: (k: string) 
 
   return (
     <motion.div
+      ref={innerRef}
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: place === 1 ? 0 : place === 2 ? 0.1 : 0.2, type: 'spring', stiffness: 120 }}
       className={cn(
         'relative flex-1 rounded-2xl border text-center',
         accent.bg, accent.ring,
-        first ? 'border-2 p-5 -mt-2' : 'border p-4'
+        first ? 'border-2 px-5 py-6 -translate-y-6 z-10 shadow-[var(--shadow-lg)]' : 'border p-4'
       )}
     >
       {first && (
