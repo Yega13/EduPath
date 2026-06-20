@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Sparkles, MapPin, CalendarDays, ArrowRight,
   BrainCircuit, Globe, Zap, Heart, Plus, Mail,
-  Users, Rocket, Clock, BadgeCheck, Trophy, TrendingUp, Flame,
+  Users, Rocket, Clock, BadgeCheck,
 } from 'lucide-react';
 import Layout from '@/components/Layout';
 import { ThreeDMarquee, type ThreeDMarqueeItem } from '@/components/ui/3d-marquee';
@@ -103,40 +103,22 @@ const FAQS = [
 ];
 
 // ── 3D Marquee items ──────────────────────────────────────────
-const MARQUEE_ITEMS: ThreeDMarqueeItem[] = [
-  { type: 'logo' },
-  { type: 'cta', label: 'Create Path',    icon: BrainCircuit },
-  { type: 'logo' },
-  { type: 'cta', label: 'Find Grants',    icon: Globe },
-  { type: 'logo' },
-  { type: 'cta', label: 'Earn XP',        icon: Zap },
-  { type: 'logo' },
-  { type: 'cta', label: 'Beat the Board', icon: Trophy },
-  { type: 'logo' },
-  { type: 'cta', label: 'Stay Sharp',     icon: Flame },
-  { type: 'logo' },
-  { type: 'cta', label: 'Track Progress', icon: TrendingUp },
-  { type: 'logo' },
-  { type: 'cta', label: 'Start Free',     icon: ArrowRight },
-  { type: 'logo' },
-  { type: 'cta', label: 'Learn Anything', icon: Sparkles },
-  { type: 'logo' },
-  { type: 'cta', label: 'Create Path',    icon: BrainCircuit },
-  { type: 'logo' },
-  { type: 'cta', label: 'Find Grants',    icon: Globe },
-  { type: 'logo' },
-  { type: 'cta', label: 'Earn XP',        icon: Zap },
-  { type: 'logo' },
-  { type: 'cta', label: 'Beat the Board', icon: Trophy },
-  { type: 'logo' },
-  { type: 'cta', label: 'Stay Sharp',     icon: Flame },
-  { type: 'logo' },
-  { type: 'cta', label: 'Track Progress', icon: TrendingUp },
-  { type: 'logo' },
-  { type: 'cta', label: 'Start Free',     icon: ArrowRight },
-  { type: 'logo' },
-  { type: 'cta', label: 'Learn Anything', icon: Sparkles },
+const CTA_DESCS = [
+  'Build a 5-lesson AI plan in minutes',
+  'Scholarships picked for Armenian students',
+  'Get rewarded for every lesson done',
+  'Compete with learners across Armenia',
+  'Daily streaks keep your skills sharp',
+  'See how far you\'ve come, visually',
+  'No card needed — sign up and go',
+  'Any topic, a course in under 60 sec',
 ];
+
+const MARQUEE_ITEMS: ThreeDMarqueeItem[] = Array.from({ length: 32 }, (_, i) =>
+  i % 2 === 0
+    ? { type: 'logo' as const }
+    : { type: 'cta' as const, desc: CTA_DESCS[Math.floor(i / 2) % CTA_DESCS.length] }
+);
 
 function FaqItem({ q, a, index }: { q: string; a: string; index: number }) {
   const [open, setOpen] = useState(false);
