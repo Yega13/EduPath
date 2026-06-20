@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -17,7 +18,7 @@ function ItemCard({ item }: { item: ThreeDMarqueeItem }) {
     );
   }
   return (
-    <div className="w-[420px] h-64 rounded-xl border-0 bg-[var(--bg-card)] flex flex-col items-center justify-center gap-4 flex-shrink-0 px-8 text-center">
+    <div className="w-[420px] h-64 rounded-xl bg-[var(--bg-card)] flex flex-col items-center justify-center gap-4 flex-shrink-0 px-8 text-center">
       <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{item.desc}</p>
       <Link
         href="/auth"
@@ -33,18 +34,24 @@ function MarqueeCol({
   items,
   direction,
   speed,
+  delay,
 }: {
   items: ThreeDMarqueeItem[];
   direction: "up" | "down";
   speed: number;
+  delay: number;
 }) {
-  const doubled = [...items, ...items];
+  // Triple content so there's never a gap at any starting position
+  const tripled = [...items, ...items, ...items];
   return (
     <div
-      className="flex flex-col gap-3 flex-shrink-0"
-      style={{ animation: `marquee-col-${direction} ${speed}s linear infinite` }}
+      className="marquee-anim flex flex-col gap-3 flex-shrink-0"
+      style={{
+        animation: `marquee-col-${direction} ${speed}s linear infinite`,
+        animationDelay: `${delay}s`,
+      }}
     >
-      {doubled.map((item, i) => (
+      {tripled.map((item, i) => (
         <ItemCard key={i} item={item} />
       ))}
     </div>
@@ -58,12 +65,18 @@ export function ThreeDMarquee({
   items: ThreeDMarqueeItem[];
   className?: string;
 }) {
+  const [paused, setPaused] = useState(false);
+
   const cols = 4;
   const perCol = Math.ceil(items.length / cols);
   const columns = Array.from({ length: cols }, (_, i) =>
     items.slice(i * perCol, (i + 1) * perCol)
   );
+
+  // Speeds and negative delays — delay = -speed/3 starts animation 1/3 through
+  // so content fills the viewport immediately from the first render
   const speeds = [90, 72, 108, 82];
+  const delays = speeds.map((s) => -(s / 3));
 
   return (
     <div className={cn("relative h-[620px] overflow-hidden", className)}>
@@ -74,9 +87,13 @@ export function ThreeDMarquee({
         className="flex h-full items-center justify-center"
         style={{ perspective: "700px" }}
       >
-        {/* The gap-3 + bg on this wrapper creates the Aceternity "grout line" effect */}
         <div
-          className="flex gap-3 p-3 items-start bg-neutral-200 dark:bg-[var(--border-strong)]"
+          className={cn(
+            "flex gap-3 p-3 items-start bg-neutral-200 dark:bg-[var(--border-strong)]",
+            paused && "marquee-paused"
+          )}
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
           style={{
             transform: "rotateX(35deg) rotateZ(-30deg)",
             transformOrigin: "center center",
@@ -88,6 +105,7 @@ export function ThreeDMarquee({
               items={col}
               direction={i % 2 === 0 ? "up" : "down"}
               speed={speeds[i]}
+              delay={delays[i]}
             />
           ))}
         </div>

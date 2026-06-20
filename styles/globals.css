@@ -22,6 +22,10 @@
   to   { transform: translateY(0); }
 }
 
+.marquee-paused .marquee-anim {
+  animation-play-state: paused;
+}
+
 @keyframes loading-bar {
   0%   { transform: translateX(-100%); }
   50%  { transform: translateX(0%); }
