@@ -20,7 +20,7 @@ export default function Logo({ height = 32, className = '' }: LogoProps) {
         src="/logo-dark.png"
         alt="Himq"
         className="hidden dark:block"
-        style={{ height: `${Math.round(height * 1.1)}px`, width: 'auto' }}
+        style={{ height: `${Math.round(height * 1.05)}px`, width: 'auto' }}
       />
     </Link>
   );
